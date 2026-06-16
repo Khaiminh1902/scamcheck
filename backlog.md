@@ -1,6 +1,5 @@
 # Danh sách Hạng mục Tính năng Dự án (ScamCheck)
 
-Dưới đây là bảng tổng hợp chi tiết toàn bộ các hạng mục tính năng, mô tả công việc, tiêu chí hoàn thành, ước lượng thời gian và mức độ ưu tiên được số hóa từ các tài liệu hình ảnh của dự án (`image_7a6edb.png`, `image_7a6c1b.png`, `image_7a6bfb.png`, `image_7a6b61.png`, `image_7a6b3a.png`, và `image_7a6b1c.png`).
 
 | Mã | Cấp | Nhóm tính năng | Hạng mục | Mô tả công việc | Tiêu chí hoàn thành | Ước lượng | Ưu tiên |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
