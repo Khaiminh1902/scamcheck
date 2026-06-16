@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ScamCheck — Công Cụ Nhận Diện Tin Nhắn Lừa Đảo
 
-## Getting Started
+ScamCheck là một công cụ web (Next.js) giúp người dùng (đặc biệt là người từ 45 tuổi trở lên ít kinh nghiệm số) kiểm tra nhanh nội dung các tin nhắn nghi ngờ lừa đảo qua SMS, Zalo, Messenger, email để biết mức độ rủi ro, dấu hiệu đáng ngờ và hành động ứng xử phù hợp.
 
-First, run the development server:
+Dự án được xây dựng dựa trên **Design System Cosmos** tối giản, trực quan, hỗ trợ tối đa cho người lớn tuổi.
 
+---
+
+## Hướng dẫn cài đặt và chạy dự án dưới local
+
+### 1. Yêu cầu hệ thống (Prerequisites)
+Đảm bảo máy tính của bạn đã cài đặt:
+- **Node.js** phiên bản v18 trở lên.
+- **npm** (đi kèm khi cài đặt Node.js).
+
+### 2. Cài đặt các thư viện phụ thuộc (Dependencies)
+Mở terminal tại thư mục gốc của dự án và chạy lệnh:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Cấu hình biến môi trường (Environment Variables)
+Ứng dụng gọi trực tiếp API của Google Gemini để phân tích tin nhắn, vì vậy bạn cần cấu hình khóa API:
+1. Tạo một file tên là `.env.local` ở thư mục gốc của dự án.
+2. Thêm khóa API Gemini của bạn vào file với định dạng sau:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+*(Thay `your_gemini_api_key_here` bằng khóa API Gemini thực tế do ban tổ chức/mentor cấp hoặc tự khởi tạo từ Google AI Studio).*
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Khởi chạy Server phát triển (Development Server)
+Chạy lệnh sau để khởi động môi trường local dev:
+```bash
+npm run dev
+```
+Mở trình duyệt và truy cập: [http://localhost:3000](http://localhost:3000) để trải nghiệm ứng dụng.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 5. Biên dịch và Đóng gói (Production Build)
+Để kiểm tra lỗi biên dịch TypeScript/ESLint và đóng gói ứng dụng tối ưu:
+```bash
+# Biên dịch dự án
+npm run build
 
-## Learn More
+# Khởi chạy server production sau khi build thành công
+npm start
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Lưu ý pháp lý bắt buộc (Disclaimer)
+ScamCheck là công cụ giáo dục và không thay thế cảnh báo chính thức từ ngân hàng hoặc cơ quan chức năng. Khi nghi ngờ có lừa đảo liên quan tới tài chính, người dùng nên liên hệ trực tiếp đến số hotline chính thức được in trên thẻ ngân hàng của mình.
