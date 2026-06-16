@@ -106,7 +106,7 @@ export async function POST(req: Request) {
     }
 
     let systemInstruction = "";
-    let responseSchema: any = {};
+    let responseSchema: Record<string, unknown> | undefined = undefined;
     let promptText = message;
 
     if (mode === "detect") {
@@ -263,10 +263,11 @@ Mỗi bước trong danh sách hướng dẫn phải có cấu trúc gồm:
     const parsedReply = cleanAndParseJSON(rawReply);
     return NextResponse.json({ reply: parsedReply });
 
-  } catch (error: any) {
-    console.error("API Chat handler error:", error);
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    console.error("API Chat handler error:", err);
     return NextResponse.json(
-      { error: error.message || "Đã xảy ra lỗi hệ thống, vui lòng thử lại sau." },
+      { error: err.message || "Đã xảy ra lỗi hệ thống, vui lòng thử lại sau." },
       { status: 500 }
     );
   }

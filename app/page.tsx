@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import hotlines from "./data/hotlines.json";
 
 interface ScamSign {
@@ -58,21 +59,19 @@ export default function Page() {
 
   // App state
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("scamcheck_history");
+        return stored ? JSON.parse(stored) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
   const [hoveredSignIndex, setHoveredSignIndex] = useState<number | null>(null);
   const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
-
-  // Load history from localStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("scamcheck_history");
-      if (stored) {
-        setHistory(JSON.parse(stored));
-      }
-    } catch (e) {
-      console.error("Failed to load history", e);
-    }
-  }, []);
 
   // Save scan to history
   const saveToHistory = (
@@ -166,7 +165,7 @@ export default function Page() {
           } else {
             setPsychologyError("Cô tâm lý đang bận, vui lòng thử lại sau.");
           }
-        } catch (e) {
+        } catch {
           setPsychologyError("Cô tâm lý đang bận, vui lòng thử lại sau.");
         } finally {
           setPsychologyLoading(false);
@@ -176,9 +175,10 @@ export default function Page() {
       // Save initial result to history
       saveToHistory(message, detectResult, psychResult);
 
-    } catch (error: any) {
-      console.error(error);
-      setErrorMsg(error.message || "Đã xảy ra lỗi không xác định. Bác vui lòng thử lại.");
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      console.error(err);
+      setErrorMsg(err.message || "Đã xảy ra lỗi không xác định. Bác vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
@@ -229,8 +229,9 @@ export default function Page() {
         selectedBank
       });
 
-    } catch (e: any) {
-      setEmergencyError(e.message || "Không thể tải kịch bản ứng cứu. Vui lòng liên hệ hotline khẩn cấp bên dưới.");
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e : new Error(String(e));
+      setEmergencyError(err.message || "Không thể tải kịch bản ứng cứu. Vui lòng liên hệ hotline khẩn cấp bên dưới.");
     } finally {
       setEmergencyLoading(false);
     }
@@ -509,7 +510,7 @@ export default function Page() {
                               Dấu hiệu #{idx + 1}
                             </span>
                             <blockquote className="text-sm font-sans font-medium text-cosmos-black border-l-2 border-amber-400 pl-2 mb-2 italic">
-                              "{sign.phrase}"
+                              &ldquo;{sign.phrase}&rdquo;
                             </blockquote>
                             <p className="text-sm font-sans text-cosmos-dark-gray leading-relaxed">{sign.explanation}</p>
                           </div>
@@ -557,7 +558,7 @@ export default function Page() {
                       <p className="text-sm font-sans text-cosmos-taupe italic">{psychologyError}</p>
                     ) : psychologyReply ? (
                       <p className="text-base font-sans leading-relaxed text-cosmos-dark-gray bg-cosmos-off-white/40 p-4 rounded-xl border border-cosmos-light-gray italic">
-                        "{psychologyReply.content}"
+                        &ldquo;{psychologyReply.content}&rdquo;
                       </p>
                     ) : null}
                   </div>
