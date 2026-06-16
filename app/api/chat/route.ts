@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { DetectiveResult } from "@/types/detective";
 
@@ -5,8 +6,8 @@ const fallback: DetectiveResult = {
   riskLevel: "warning",
   scamSigns: [],
   recommendedActions: [
-    "Không đưa ra quyết định vội vàng.",
-    "Xác minh thông tin qua nguồn chính thức.",
+    "Không đưa ra quyết định vội vàng",
+    "Xác minh thông tin qua nguồn chính thức",
   ],
 };
 
@@ -15,9 +16,9 @@ export async function POST(req: Request) {
     const { message } = await req.json();
 
     const prompt = `
-Mày là chuyên gia phát hiện lừa đảo
+Bạn là chuyên gia phát hiện lừa đảo.
 
-Phân tích nội dung:
+Phân tích nội dung sau:
 
 "${message}"
 
@@ -35,7 +36,7 @@ Trả về JSON đúng format:
   "recommendedActions":[]
 }
 
-Chỉ trả về JSON
+Chỉ trả về JSON.
 `;
 
     const response = await fetch(
@@ -55,29 +56,71 @@ Chỉ trả về JSON
               ],
             },
           ],
+          generationConfig: {
+            responseMimeType: "application/json",
+          },
         }),
       },
     );
 
-    const data = await response.json();
+    if (!response.ok) {
+      const errorText = await response.text();
 
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+      console.log("STATUS:", response.status);
+      console.log("ERROR:", errorText);
+
+      return NextResponse.json({
+        ...fallback,
+        error: errorText,
+      });
+    }
+
+    const data = await response.json();
+    console.log(JSON.stringify(data, null, 2));
+
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
+
+    console.log("Gemini raw:", text);
 
     const cleaned = text
-      .replace(/```json/g, "")
+      .replace(/```json/gi, "")
       .replace(/```/g, "")
       .trim();
 
-    let result: DetectiveResult;
+    let parsed: any = {};
 
     try {
-      result = JSON.parse(cleaned);
-    } catch {
-      result = fallback;
+      parsed = JSON.parse(cleaned);
+    } catch (e) {
+      console.error("JSON parse failed:", e);
+      parsed = {};
     }
 
+    const result: DetectiveResult = {
+      riskLevel:
+        parsed?.riskLevel === "safe" ||
+        parsed?.riskLevel === "warning" ||
+        parsed?.riskLevel === "danger"
+          ? parsed.riskLevel
+          : "warning",
+
+      scamSigns: Array.isArray(parsed?.scamSigns)
+        ? parsed.scamSigns.map((item: any) => ({
+            title: item?.title ?? "",
+            explanation: item?.explanation ?? "",
+            excerpt: item?.excerpt ?? "",
+          }))
+        : [],
+
+      recommendedActions: Array.isArray(parsed?.recommendedActions)
+        ? parsed.recommendedActions
+        : [],
+    };
+
     return NextResponse.json(result);
-  } catch (err) {
+  } catch (error) {
+    console.error(error);
+
     return NextResponse.json(fallback);
   }
 }
