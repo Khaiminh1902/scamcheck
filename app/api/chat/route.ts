@@ -88,12 +88,14 @@ Chỉ trả về JSON.
       .trim();
 
     let parsed: any = {};
+    let hasParseError = false;
 
     try {
       parsed = JSON.parse(cleaned);
     } catch (e) {
       console.error("JSON parse failed:", e);
       parsed = {};
+      hasParseError = true;
     }
 
     const result: DetectiveResult = {
@@ -117,10 +119,17 @@ Chỉ trả về JSON.
         : [],
     };
 
+    if (hasParseError || Object.keys(parsed).length === 0) {
+       return NextResponse.json({ ...result, error: "Lỗi định dạng trả về từ AI" });
+    }
+
     return NextResponse.json(result);
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
 
-    return NextResponse.json(fallback);
+    return NextResponse.json({
+        ...fallback,
+        error: error?.message || "Lỗi xử lý hệ thống",
+    });
   }
 }
