@@ -6,4 +6,6 @@ export type DetectiveResult = {
     excerpt: string;
   }[];
   recommendedActions: string[];
+  psychologyAdvice?: string;
+  psychologyError?: string;
 };

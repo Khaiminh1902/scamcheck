@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import RiskBadge from "./components/level";
 import { DetectiveResult } from "@/types/detective";
 
@@ -30,20 +30,20 @@ export default function Page() {
   const [result, setResult] = useState<DetectiveResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>(() => {
+    if (typeof window === "undefined") return [];
 
-  // Load history from localStorage on mount
-  useEffect(() => {
     const saved = localStorage.getItem("scamcheck_history");
-    if (saved) {
-      try {
-        setHistory(JSON.parse(saved));
-      } catch (e) {
-        console.error(e);
-      }
+    if (!saved) return [];
+
+    try {
+      return JSON.parse(saved) as HistoryItem[];
+    } catch (e) {
+      console.error(e);
+      return [];
     }
-  }, []);
+  });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   function saveToHistory(msg: string, res: DetectiveResult) {
     const newItem: HistoryItem = {
@@ -287,39 +287,54 @@ export default function Page() {
                   />
                 </div>
 
-                {/* Scam signs */}
-                <div className="space-y-4">
-                  <h2 className="text-lg md:text-xl font-bold text-gray-800">Dấu hiệu lừa đảo phát hiện được</h2>
+                {/* Detective analysis */}
+                <div className="rounded-xl border border-gray-200 bg-white p-4 md:p-6 shadow-sm">
+                  <h2 className="mb-4 text-lg md:text-xl font-bold text-gray-800 border-b pb-2">Phân tích kỹ thuật từ Thám tử</h2>
 
-                  {result.scamSigns.length === 0 && (
-                    <div className="p-4 bg-green-50 text-green-700 rounded-xl text-base md:text-lg">
-                      ✅ Không phát hiện dấu hiệu lừa đảo rõ ràng. Tuy nhiên, bác vẫn nên cẩn trọng.
-                    </div>
-                  )}
+                  <div className="space-y-4">
+                    <h3 className="text-base md:text-lg font-bold text-gray-800">Dấu hiệu lừa đảo phát hiện được</h3>
 
-                  {result.scamSigns.map((sign, index) => (
-                    <div key={index} className="rounded-xl border border-red-200 bg-red-50 p-4 md:p-5 shadow-sm">
-                      <h3 className="text-lg md:text-xl font-bold text-red-600 mb-2">🚩 {sign.title}</h3>
-                      <p className="text-base md:text-lg text-gray-700 mb-3 md:mb-4">{sign.explanation}</p>
-                      
-                      {sign.excerpt && (
-                        <div className="rounded-lg bg-yellow-100 p-3 text-base md:text-lg border border-yellow-200 text-gray-800 italic">
-                          &quot;{sign.excerpt}&quot;
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                    {result.scamSigns.length === 0 && (
+                      <div className="p-4 bg-green-50 text-green-700 rounded-xl text-base md:text-lg">
+                        ✅ Không phát hiện dấu hiệu lừa đảo rõ ràng. Tuy nhiên, bác vẫn nên cẩn trọng.
+                      </div>
+                    )}
 
-                {/* Recommendations */}
-                <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 md:p-6 shadow-sm">
-                  <h2 className="mb-3 md:mb-4 text-lg md:text-xl font-bold text-blue-800">Hành động bác nên làm tiếp theo</h2>
-                  <ul className="ml-5 md:ml-6 list-disc space-y-2 md:space-y-3 text-base md:text-lg text-blue-900 marker:text-blue-500">
-                    {result.recommendedActions.map((action, index) => (
-                      <li key={index}>{action}</li>
+                    {result.scamSigns.map((sign, index) => (
+                      <div key={index} className="rounded-xl border border-red-200 bg-red-50 p-4 md:p-5">
+                        <h4 className="text-lg md:text-xl font-bold text-red-600 mb-2">🚩 {sign.title}</h4>
+                        <p className="text-base md:text-lg text-gray-700 mb-3 md:mb-4">{sign.explanation}</p>
+                        
+                        {sign.excerpt && (
+                          <div className="rounded-lg bg-yellow-100 p-3 text-base md:text-lg border border-yellow-200 text-gray-800 italic">
+                            &quot;{sign.excerpt}&quot;
+                          </div>
+                        )}
+                      </div>
                     ))}
-                  </ul>
+                  </div>
+
+                  <div className="mt-5 rounded-xl border border-blue-200 bg-blue-50 p-4 md:p-5">
+                    <h3 className="mb-3 text-base md:text-lg font-bold text-blue-800">Hành động bác nên làm tiếp theo</h3>
+                    <ul className="ml-5 md:ml-6 list-disc space-y-2 md:space-y-3 text-base md:text-lg text-blue-900 marker:text-blue-500">
+                      {result.recommendedActions.map((action, index) => (
+                        <li key={index}>{action}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
+
+                {(result.psychologyAdvice || result.psychologyError) && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 md:p-6 shadow-sm">
+                    <h2 className="mb-3 md:mb-4 text-lg md:text-xl font-bold text-amber-900">Hiểu vì sao mình suýt tin</h2>
+                    {result.psychologyAdvice && (
+                      <p className="text-base md:text-lg leading-relaxed text-amber-950">{result.psychologyAdvice}</p>
+                    )}
+                    {result.psychologyError && (
+                      <p className="text-base md:text-lg leading-relaxed text-amber-900">{result.psychologyError}</p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
