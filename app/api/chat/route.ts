@@ -21,6 +21,7 @@ type GeminiDetectiveResult = {
   riskLevel?: unknown;
   scamSigns?: unknown;
   recommendedActions?: unknown;
+  psychologyAdvice?: unknown;
 };
 
 const fallback: DetectiveResult = {
@@ -32,26 +33,93 @@ const fallback: DetectiveResult = {
   ],
 };
 
-const psychologyBusyMessage = "Cô tâm lý đang bận, vui lòng thử lại sau.";
+const detectiveResponseSchema = {
+  type: "OBJECT",
+  properties: {
+    riskLevel: {
+      type: "STRING",
+      enum: ["safe", "warning", "danger"],
+    },
+    scamSigns: {
+      type: "ARRAY",
+      maxItems: 3,
+      items: {
+        type: "OBJECT",
+        properties: {
+          title: { type: "STRING" },
+          explanation: { type: "STRING" },
+          excerpt: { type: "STRING" },
+        },
+        required: ["title", "explanation", "excerpt"],
+      },
+    },
+    recommendedActions: {
+      type: "ARRAY",
+      maxItems: 3,
+      items: { type: "STRING" },
+    },
+    psychologyAdvice: {
+      type: "STRING",
+    },
+  },
+  required: [
+    "riskLevel",
+    "scamSigns",
+    "recommendedActions",
+    "psychologyAdvice",
+  ],
+};
 
 function isRiskLevel(value: unknown): value is DetectiveResult["riskLevel"] {
   return value === "safe" || value === "warning" || value === "danger";
 }
 
 function cleanJsonText(text: string) {
-  return text
+  const cleaned = text
     .replace(/```json/gi, "")
     .replace(/```/g, "")
     .trim();
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+
+  if (start === -1 || end === -1 || end <= start) {
+    return cleaned;
+  }
+
+  return cleaned.slice(start, end + 1);
 }
 
 function toText(value: unknown) {
   return typeof value === "string" ? value : "";
 }
 
+function repairJsonText(text: string) {
+  return text
+    .replace(/,\s*([}\]])/g, "$1")
+    .replace(/(["}\]])\s*\n\s*(")/g, "$1,\n$2")
+    .replace(/}\s*{/g, "},{");
+}
+
+function parseDetectiveJson(text: string) {
+  try {
+    return JSON.parse(text) as GeminiDetectiveResult;
+  } catch (firstError) {
+    const repaired = repairJsonText(text);
+
+    try {
+      return JSON.parse(repaired) as GeminiDetectiveResult;
+    } catch {
+      throw firstError;
+    }
+  }
+}
+
 function normalizeDetectiveResult(parsed: GeminiDetectiveResult): DetectiveResult {
+  const riskLevel = isRiskLevel(parsed.riskLevel) ? parsed.riskLevel : "warning";
+  const psychologyAdvice = toText(parsed.psychologyAdvice).trim();
+
   return {
-    riskLevel: isRiskLevel(parsed.riskLevel) ? parsed.riskLevel : "warning",
+    riskLevel,
     scamSigns: Array.isArray(parsed.scamSigns)
       ? parsed.scamSigns.map((item: GeminiScamSign) => ({
           title: toText(item?.title),
@@ -64,12 +132,14 @@ function normalizeDetectiveResult(parsed: GeminiDetectiveResult): DetectiveResul
           (action): action is string => typeof action === "string",
         )
       : [],
+    ...(riskLevel !== "safe" && psychologyAdvice ? { psychologyAdvice } : {}),
   };
 }
 
 async function callGemini(prompt: string) {
+  const model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
     {
       method: "POST",
       headers: {
@@ -87,6 +157,9 @@ async function callGemini(prompt: string) {
         ],
         generationConfig: {
           responseMimeType: "application/json",
+          responseSchema: detectiveResponseSchema,
+          temperature: 0.2,
+          maxOutputTokens: 1600,
         },
       }),
     },
@@ -98,42 +171,6 @@ async function callGemini(prompt: string) {
 
   const data = (await response.json()) as GeminiGenerateResponse;
   return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}";
-}
-
-async function getPsychologyAdvice(message: string, detectiveResult: DetectiveResult) {
-  const prompt = `
-Bạn là Cô tâm lý trong ứng dụng giáo dục chống lừa đảo.
-
-Hãy viết lời nhắn cho người dùng với các quy tắc:
-- Giọng gần gũi, xưng là "cô" và gọi người dùng là "bác".
-- Chỉ viết từ hai đến ba câu.
-- Không hù dọa, không lên giọng dạy dỗ.
-- Giải thích chiêu thức tâm lý mà kẻ lừa đảo đã dùng trong tin nhắn.
-
-Tin nhắn người dùng:
-"${message}"
-
-Kết luận kỹ thuật của Thám tử:
-${JSON.stringify(detectiveResult)}
-
-Trả về JSON đúng format:
-
-{
-  "advice":""
-}
-
-Chỉ trả về JSON.
-`;
-
-  const text = await callGemini(prompt);
-  const parsed = JSON.parse(cleanJsonText(text)) as { advice?: unknown };
-  const advice = toText(parsed.advice).trim();
-
-  if (!advice) {
-    throw new Error("Cô tâm lý trả về nội dung rỗng.");
-  }
-
-  return advice;
 }
 
 export async function POST(req: Request) {
@@ -166,8 +203,17 @@ Trả về JSON đúng format:
       "excerpt":""
     }
   ],
-  "recommendedActions":[]
+  "recommendedActions":[],
+  "psychologyAdvice":""
 }
+
+Quy tắc:
+- Nếu riskLevel là "safe", psychologyAdvice phải là chuỗi rỗng.
+- Nếu riskLevel là "warning" hoặc "danger", psychologyAdvice là lời nhắn từ Cô tâm lý: xưng "cô", gọi người dùng là "bác", chỉ hai đến ba câu, giải thích chiêu thức tâm lý, không hù dọa và không lên giọng dạy dỗ.
+- scamSigns có tối đa 3 phần tử.
+- recommendedActions có tối đa 3 phần tử.
+- Viết ngắn gọn, ưu tiên câu rõ ràng cho người lớn tuổi.
+- Không xuống dòng bên trong chuỗi JSON.
 
 Chỉ trả về JSON.
 `;
@@ -178,7 +224,7 @@ Chỉ trả về JSON.
     let hasParseError = false;
 
     try {
-      parsed = JSON.parse(cleaned) as GeminiDetectiveResult;
+      parsed = parseDetectiveJson(cleaned);
     } catch (e) {
       console.error("JSON parse failed:", e);
       parsed = {};
@@ -189,15 +235,6 @@ Chỉ trả về JSON.
 
     if (hasParseError || Object.keys(parsed).length === 0) {
        return NextResponse.json({ ...result, error: "Lỗi định dạng trả về từ AI" });
-    }
-
-    if (result.riskLevel === "warning" || result.riskLevel === "danger") {
-      try {
-        result.psychologyAdvice = await getPsychologyAdvice(message, result);
-      } catch (psychologyError) {
-        console.error("Psychology layer failed:", psychologyError);
-        result.psychologyError = psychologyBusyMessage;
-      }
     }
 
     return NextResponse.json(result);
