@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import { FaMoon, FaSun } from "react-icons/fa6";
 import RiskBadge from "./components/level";
 import { DetectiveResult } from "@/types/detective";
+import Link from "next/link";
 
 type HistoryItem = {
   message: string;
@@ -236,7 +237,11 @@ export default function Page() {
                 : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
             }`}
           >
-            {isDarkMode ? <FaSun className="h-4 w-4" /> : <FaMoon className="h-4 w-4" />}
+            {isDarkMode ? (
+              <FaSun className="h-4 w-4" />
+            ) : (
+              <FaMoon className="h-4 w-4" />
+            )}
           </button>
         </div>
         <button
@@ -288,7 +293,11 @@ export default function Page() {
                     : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
                 }`}
               >
-                {isDarkMode ? <FaSun className="h-4 w-4" /> : <FaMoon className="h-4 w-4" />}
+                {isDarkMode ? (
+                  <FaSun className="h-4 w-4" />
+                ) : (
+                  <FaMoon className="h-4 w-4" />
+                )}
               </button>
             </div>
             <h1 className="text-xl font-bold md:hidden">Lịch sử</h1>
@@ -318,7 +327,7 @@ export default function Page() {
 
           <div className="px-5 pb-6 flex flex-1 min-h-0 flex-col">
             <button
-              className={`cursor-pointer hidden md:flex mb-8 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${
+              className={`cursor-pointer hidden md:flex mb-3 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${
                 isDarkMode
                   ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
                   : "border-gray-300 bg-white hover:bg-gray-100"
@@ -332,6 +341,16 @@ export default function Page() {
               <span className="text-2xl leading-none">+</span>
               <span>Tìm kiếm mới</span>
             </button>
+            <Link
+              className={`cursor-pointer hidden md:flex mb-8 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${
+                isDarkMode
+                  ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
+                  : "border-gray-300 bg-white hover:bg-gray-100"
+              }`}
+              href="/luyentap"
+            >
+              Chế độ luyện tập
+            </Link>
 
             <div className="flex min-h-0 flex-1 flex-col">
               <h2
