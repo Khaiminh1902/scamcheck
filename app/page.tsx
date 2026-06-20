@@ -4,6 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import { FaMoon, FaSun } from "react-icons/fa6";
 import RiskBadge from "./components/level";
 import { DetectiveResult } from "@/types/detective";
+import Link from "next/link";
 
 type HistoryItem = {
   message: string;
@@ -341,7 +342,7 @@ export default function Page() {
               <span className="text-2xl leading-none">+</span>
               <span>Tìm kiếm mới</span>
             </button>
-            {/* <Link
+            <Link
               className={`cursor-pointer hidden md:flex mb-8 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${
                 isDarkMode
                   ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
@@ -350,7 +351,7 @@ export default function Page() {
               href="/luyentap"
             >
               Chế độ luyện tập
-            </Link> */}
+            </Link>
 
             <div className="flex min-h-0 flex-1 flex-col">
               <h2
