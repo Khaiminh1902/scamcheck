@@ -652,30 +652,33 @@ export default function Page() {
                     ))}
                   </div>
 
-                  <div
-                    className={`mt-5 rounded-xl border p-4 md:p-5 ${
-                      isDarkMode
-                        ? "border-blue-900 bg-blue-950"
-                        : "border-blue-200 bg-blue-50"
-                    }`}
-                  >
-                    <h3
-                      className={`mb-3 text-base md:text-lg font-bold ${
-                        isDarkMode ? "text-blue-200" : "text-blue-800"
+                  {result.recommendedActions?.length > 0 && (
+                    <div
+                      className={`mt-5 rounded-xl border p-4 md:p-5 ${
+                        isDarkMode
+                          ? "border-blue-900 bg-blue-950"
+                          : "border-blue-200 bg-blue-50"
                       }`}
                     >
-                      Hành động bác nên làm tiếp theo
-                    </h3>
-                    <ul
-                      className={`ml-5 md:ml-6 list-disc space-y-2 md:space-y-3 text-base md:text-lg marker:text-blue-500 ${
-                        isDarkMode ? "text-blue-100" : "text-blue-900"
-                      }`}
-                    >
-                      {result.recommendedActions.map((action, index) => (
-                        <li key={index}>{action}</li>
-                      ))}
-                    </ul>
-                  </div>
+                      <h3
+                        className={`mb-3 text-base md:text-lg font-bold ${
+                          isDarkMode ? "text-blue-200" : "text-blue-800"
+                        }`}
+                      >
+                        Hành động bác nên làm tiếp theo
+                      </h3>
+
+                      <ul
+                        className={`ml-5 md:ml-6 list-disc space-y-2 md:space-y-3 text-base md:text-lg marker:text-blue-500 ${
+                          isDarkMode ? "text-blue-100" : "text-blue-900"
+                        }`}
+                      >
+                        {result.recommendedActions.map((action, index) => (
+                          <li key={index}>{action}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
                 {(result.psychologyAdvice || result.psychologyError) && (
