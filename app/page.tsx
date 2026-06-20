@@ -29,7 +29,7 @@ const SAMPLE_MESSAGES = [
   {
     label: "Giả công an",
     tone: "Phạt nguội",
-    text: "Đây là cục cảnh sát giao thông, bạn có 1 biên lai phạt nguội chưa nộp. Hãy bấm vào link https://github.com/Khaiminh1902/scamcheck và chuyển tiền sớm nhất có thể",
+    text: "Đây là cục cảnh sát giao thông, bạn có 1 biên lai phạt nguội chưa nộp. Hãy bấm vào link https://de.pornhub.org/ và chuyển tiền sớm nhất có thể",
   },
   {
     label: "Trúng thưởng",
