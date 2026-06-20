@@ -694,7 +694,7 @@ export default function Page() {
                         isDarkMode ? "text-amber-100" : "text-amber-900"
                       }`}
                     >
-                      Hiểu vì sao mình suýt tin
+                      Cô tâm lý
                     </h2>
                     {result.psychologyAdvice && (
                       <p
