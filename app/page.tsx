@@ -95,6 +95,7 @@ export default function Page() {
     getServerHistorySnapshot,
   );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const messageLength = message.length;
   const themeToggleLabel = isDarkMode
     ? "Chuyển sang giao diện sáng"
     : "Chuyển sang giao diện tối";
@@ -490,6 +491,20 @@ export default function Page() {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
+
+            <div className="mt-2 flex justify-end">
+              <span
+                className={`text-sm md:text-base ${
+                  messageLength > 5000
+                    ? "text-red-500"
+                    : isDarkMode
+                      ? "text-gray-400"
+                      : "text-gray-500"
+                }`}
+              >
+                {messageLength}/5000
+              </span>
+            </div>
 
             {errorMsg && (
               <div
