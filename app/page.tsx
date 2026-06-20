@@ -4,7 +4,6 @@ import { useState, useSyncExternalStore } from "react";
 import { FaMoon, FaSun } from "react-icons/fa6";
 import RiskBadge from "./components/level";
 import { DetectiveResult } from "@/types/detective";
-import Link from "next/link";
 
 type HistoryItem = {
   message: string;

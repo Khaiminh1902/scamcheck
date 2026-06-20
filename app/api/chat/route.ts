@@ -114,8 +114,12 @@ function parseDetectiveJson(text: string) {
   }
 }
 
-function normalizeDetectiveResult(parsed: GeminiDetectiveResult): DetectiveResult {
-  const riskLevel = isRiskLevel(parsed.riskLevel) ? parsed.riskLevel : "warning";
+function normalizeDetectiveResult(
+  parsed: GeminiDetectiveResult,
+): DetectiveResult {
+  const riskLevel = isRiskLevel(parsed.riskLevel)
+    ? parsed.riskLevel
+    : "warning";
   const psychologyAdvice = toText(parsed.psychologyAdvice).trim();
 
   return {
@@ -180,13 +184,13 @@ export async function POST(req: Request) {
 
     if (!message) {
       return NextResponse.json(
-        { ...fallback, error: "Vui lòng nhập nội dung tin nhắn cần kiểm tra." },
+        { ...fallback, error: "Vui lòng nhập nội dung tin nhắn cần kiểm tra" },
         { status: 400 },
       );
     }
 
     const prompt = `
-Bạn là chuyên gia phát hiện lừa đảo.
+Mày là chuyên gia phát hiện lừa đảo.
 
 Phân tích nội dung sau:
 
@@ -234,7 +238,10 @@ Chỉ trả về JSON.
     const result: DetectiveResult = normalizeDetectiveResult(parsed);
 
     if (hasParseError || Object.keys(parsed).length === 0) {
-       return NextResponse.json({ ...result, error: "Lỗi định dạng trả về từ AI" });
+      return NextResponse.json({
+        ...result,
+        error: "Lỗi định dạng trả về từ AI",
+      });
     }
 
     return NextResponse.json(result);
@@ -242,8 +249,8 @@ Chỉ trả về JSON.
     console.error(error);
 
     return NextResponse.json({
-        ...fallback,
-        error: error instanceof Error ? error.message : "Lỗi xử lý hệ thống",
+      ...fallback,
+      error: error instanceof Error ? error.message : "Lỗi xử lý hệ thống",
     });
   }
 }
