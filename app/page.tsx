@@ -5,6 +5,9 @@ import { FaMoon, FaSun } from "react-icons/fa6";
 import RiskBadge from "./components/level";
 import { DetectiveResult } from "@/types/detective";
 import Link from "next/link";
+import ThamTu from "../public/tt.png";
+import TamLy from "../public/tl.png";
+import Image from "next/image";
 
 type HistoryItem = {
   message: string;
@@ -597,12 +600,13 @@ export default function Page() {
                   }`}
                 >
                   <h2
-                    className={`mb-4 text-lg md:text-xl font-bold border-b pb-2 ${
+                    className={`mb-4 text-lg md:text-xl font-bold border-b pb-2 flex items-center gap-2 ${
                       isDarkMode
                         ? "border-gray-800 text-gray-100"
                         : "border-gray-200 text-gray-800"
                     }`}
                   >
+                    <Image src={ThamTu} alt="Tham Tu" height={20} width={60} />{" "}
                     Phân tích kỹ thuật từ thám tử
                   </h2>
 
@@ -705,10 +709,11 @@ export default function Page() {
                     }`}
                   >
                     <h2
-                      className={`mb-3 md:mb-4 text-lg md:text-xl font-bold ${
+                      className={`mb-3 md:mb-4 text-lg md:text-xl font-bold flex items-center gap-2 ${
                         isDarkMode ? "text-amber-100" : "text-amber-900"
                       }`}
                     >
+                      <Image src={TamLy} alt="Tam Ly" height={20} width={60} />{" "}
                       Cô tâm lý
                     </h2>
                     {result.psychologyAdvice && (
