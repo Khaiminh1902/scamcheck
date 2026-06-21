@@ -9,3 +9,14 @@ export type DetectiveResult = {
   psychologyAdvice?: string;
   psychologyError?: string;
 };
+
+export type UrlAnalysisResult = {
+  raw: string;
+  hostname: string;
+  isSuspicious: boolean;
+  isShortened: boolean;
+  isLegitimate: boolean;
+  matchedOrg?: string;
+  officialDomain?: string;
+  reason?: string;
+};
