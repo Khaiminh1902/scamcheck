@@ -27,7 +27,7 @@ const SAMPLE_MESSAGES = [
   {
     label: "Giả ngân hàng",
     tone: "Khóa tài khoản",
-    text: "Tài khoản của bạn đã bị khoá. Vui lòng truy cập link http://vietconbank.vn để mở khoá",
+    text: "Tài khoản của bạn đã bị khoá. Vui lòng truy cập link để mở khoá",
   },
   {
     label: "Giả công an",
