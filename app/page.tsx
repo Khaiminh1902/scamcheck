@@ -1017,9 +1017,16 @@ export default function Page() {
           : "border-gray-200 bg-gray-50 text-gray-600"
           }`}
       >
-        ⚠️ <strong>Lưu ý:</strong> ScamCheck là công cụ giáo dục do nhóm học
-        viên phát triển và không thay thế cảnh báo chính thức từ ngân hàng hoặc
-        cơ quan chức năng. Khi nghi ngờ, hãy gọi số hotline trên thẻ ngân hàng!
+        <div className="flex flex-col gap-2 items-center">
+          <p>
+            ⚠️ <strong>Lưu ý:</strong> ScamCheck là công cụ giáo dục do nhóm học
+            viên phát triển và không thay thế cảnh báo chính thức từ ngân hàng hoặc
+            cơ quan chức năng. Khi nghi ngờ, hãy gọi số hotline trên thẻ ngân hàng!
+          </p>
+          {process.env.NEXT_PUBLIC_APP_VERSION && (
+            <p className="text-xs opacity-60 font-mono">Phiên bản: {process.env.NEXT_PUBLIC_APP_VERSION}</p>
+          )}
+        </div>
       </footer>
     </div>
   );
