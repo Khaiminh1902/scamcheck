@@ -322,7 +322,7 @@ export default function SharedResultClient({ message, result }: { message: strin
               )}
             </div>
 
-            {result.psychologyAdvice && (
+            {(result.psychologyAdvice || result.psychologyError) && (
               <div
                 className={`rounded-xl border p-4 md:p-6 shadow-sm ${isDarkMode
                     ? "border-amber-900 bg-amber-950"
@@ -336,12 +336,22 @@ export default function SharedResultClient({ message, result }: { message: strin
                   <Image src={TamLy} alt="Tam Ly" height={20} width={60} style={{ width: "auto", height: "auto" }} />{" "}
                   Cô tâm lý
                 </h2>
-                <p
-                  className={`text-base md:text-lg leading-relaxed ${isDarkMode ? "text-amber-100" : "text-amber-950"
-                    }`}
-                >
-                  {result.psychologyAdvice}
-                </p>
+                {result.psychologyAdvice && (
+                  <p
+                    className={`text-base md:text-lg leading-relaxed ${isDarkMode ? "text-amber-100" : "text-amber-955"
+                      }`}
+                  >
+                    {result.psychologyAdvice}
+                  </p>
+                )}
+                {result.psychologyError && (
+                  <p
+                    className={`text-base md:text-lg leading-relaxed ${isDarkMode ? "text-amber-200" : "text-amber-900"
+                      }`}
+                  >
+                    {result.psychologyError}
+                  </p>
+                )}
               </div>
             )}
             
