@@ -6,13 +6,16 @@ import RiskBadge from "./level";
 interface WarningCardProps {
   message: string;
   result: DetectiveResult;
+  url?: string;
 }
 
 const WarningCard = forwardRef<HTMLDivElement, WarningCardProps>(
-  ({ message, result }, ref) => {
+  ({ message, result, url = "https://scamcheck.vn" }, ref) => {
     // Shorten message if too long
     const shortMessage =
       message.length > 200 ? message.substring(0, 200) + "..." : message;
+
+    const displayDomain = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
 
     return (
       <div
@@ -61,11 +64,11 @@ const WarningCard = forwardRef<HTMLDivElement, WarningCardProps>(
 
         <div style={{ marginTop: "32px", paddingTop: "24px", borderTop: "2px dashed #e5e7eb", display: "flex", alignItems: "center", gap: "16px" }}>
           <div style={{ padding: "6px", backgroundColor: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "10px" }}>
-            <QRCodeSVG value="https://scamcheck.vn" size={64} />
+            <QRCodeSVG value={url} size={64} />
           </div>
           <div>
             <p style={{ margin: "0 0 4px 0", fontSize: "16px", fontWeight: 700, color: "#111827" }}>Kiểm tra tin nhắn lừa đảo ngay</p>
-            <p style={{ margin: 0, fontSize: "14px", color: "#6b7280", lineHeight: 1.4 }}>Quét mã QR hoặc truy cập <strong>scamcheck.vn</strong> để tự bảo vệ mình và người thân.</p>
+            <p style={{ margin: 0, fontSize: "14px", color: "#6b7280", lineHeight: 1.4 }}>Quét mã QR hoặc truy cập <strong>{displayDomain}</strong> để tự bảo vệ mình và người thân.</p>
           </div>
         </div>
       </div>

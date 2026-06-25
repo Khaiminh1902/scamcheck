@@ -755,7 +755,7 @@ export default function Page() {
                 </div>
 
                 <div style={{ position: "absolute", left: 0, top: 0, zIndex: -100, opacity: 0, pointerEvents: "none" }}>
-                  <WarningCard ref={warningCardRef} message={message} result={result} />
+                  <WarningCard ref={warningCardRef} message={message} result={result} url={typeof window !== "undefined" ? window.location.origin : "https://scamcheck.vn"} />
                 </div>
               </div>
             )}
