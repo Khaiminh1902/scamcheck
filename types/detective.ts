@@ -8,4 +8,8 @@ export type DetectiveResult = {
   recommendedActions: string[];
   psychologyAdvice?: string;
   psychologyError?: string;
+  scenarios?: {
+    key: "none" | "link" | "money" | "otp";
+    label: string;
+  }[];
 };

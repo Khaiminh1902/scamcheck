@@ -61,12 +61,26 @@ const detectiveResponseSchema = {
     psychologyAdvice: {
       type: "STRING",
     },
+    scenarios: {
+      type: "ARRAY",
+      minItems: 4,
+      maxItems: 4,
+      items: {
+        type: "OBJECT",
+        properties: {
+          key: { type: "STRING", enum: ["none", "link", "money", "otp"] },
+          label: { type: "STRING" }
+        },
+        required: ["key", "label"]
+      }
+    }
   },
   required: [
     "riskLevel",
     "scamSigns",
     "recommendedActions",
     "psychologyAdvice",
+    "scenarios"
   ],
 };
 
@@ -122,6 +136,13 @@ function normalizeDetectiveResult(
     : "warning";
   const psychologyAdvice = toText(parsed.psychologyAdvice).trim();
 
+  const scenarios = Array.isArray((parsed as any).scenarios)
+    ? (parsed as any).scenarios.map((scen: any) => ({
+        key: typeof scen?.key === "string" ? scen.key : "none",
+        label: typeof scen?.label === "string" ? scen.label : "",
+      }))
+    : undefined;
+
   return {
     riskLevel,
     scamSigns: Array.isArray(parsed.scamSigns)
@@ -136,6 +157,7 @@ function normalizeDetectiveResult(
           (action): action is string => typeof action === "string",
         )
       : [],
+    scenarios,
     ...(riskLevel !== "safe" && psychologyAdvice ? { psychologyAdvice } : {}),
   };
 }
@@ -208,7 +230,13 @@ Trả về JSON đúng format:
     }
   ],
   "recommendedActions":[],
-  "psychologyAdvice":""
+  "psychologyAdvice":"",
+  "scenarios":[
+    { "key": "none", "label": "" },
+    { "key": "link", "label": "" },
+    { "key": "money", "label": "" },
+    { "key": "otp", "label": "" }
+  ]
 }
 
 Quy tắc:
@@ -216,6 +244,11 @@ Quy tắc:
 - Nếu riskLevel là "warning" hoặc "danger", psychologyAdvice là lời nhắn từ Cô tâm lý: xưng "cô", gọi người dùng là "bác", chỉ hai đến ba câu, giải thích chiêu thức tâm lý, không hù dọa và không lên giọng dạy dỗ.
 - scamSigns có tối đa 3 phần tử.
 - recommendedActions có tối đa 3 phần tử.
+- scenarios PHẢI có đúng 4 phần tử với các key tương ứng:
+  * "none": Nhãn cho hành động chưa làm gì cả, cá nhân hóa theo tin nhắn (ví dụ: "Chưa làm gì cả, chỉ mới đọc tin nhắn").
+  * "link": Nhãn cho hành động bấm vào đường dẫn lạ cụ thể trong tin nhắn (ví dụ: "Đã bấm vào link trong tin nhắn").
+  * "money": Nhãn cho hành động chuyển khoản tiền cụ thể được yêu cầu (ví dụ: "Đã chuyển khoản tiền theo yêu cầu").
+  * "otp": Nhãn cho hành động cung cấp mã OTP/thông tin đăng nhập bảo mật (ví dụ: "Đã cung cấp mã xác thực OTP").
 - Viết ngắn gọn, ưu tiên câu rõ ràng cho người lớn tuổi.
 - Không xuống dòng bên trong chuỗi JSON.
 

@@ -1,0 +1,15 @@
+[
+  { "name": "Cục An toàn thông tin", "phone": "156", "type": "authority" },
+  { "name": "Đường dây nóng Bộ Công an", "phone": "0692348560", "type": "police" },
+  { "name": "Đường dây khẩn cấp Công an", "phone": "113", "type": "police" },
+  { "name": "Ngân hàng Ngoại thương Việt Nam (Vietcombank)", "phone": "1900545413", "type": "bank" },
+  { "name": "Ngân hàng Công thương Việt Nam (VietinBank)", "phone": "1900558868", "type": "bank" },
+  { "name": "Ngân hàng Đầu tư và Phát triển Việt Nam (BIDV)", "phone": "19009247", "type": "bank" },
+  { "name": "Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam (Agribank)", "phone": "1900558818", "type": "bank" },
+  { "name": "Ngân hàng Kỹ thương Việt Nam (Techcombank)", "phone": "1800588822", "type": "bank" },
+  { "name": "Ngân hàng Quân đội (MB)", "phone": "1900545426", "type": "bank" },
+  { "name": "Ngân hàng Á Châu (ACB)", "phone": "1900545486", "type": "bank" },
+  { "name": "Ngân hàng Việt Nam Thịnh Vượng (VPBank)", "phone": "1900545415", "type": "bank" },
+  { "name": "Ngân hàng Sài Gòn Thương Tín (Sacombank)", "phone": "1900558868", "type": "bank" },
+  { "name": "Ngân hàng Quốc tế (VIB)", "phone": "18008180", "type": "bank" }
+]

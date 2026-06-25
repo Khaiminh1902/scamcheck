@@ -95,6 +95,10 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
+  const [responderLoading, setResponderLoading] = useState(false);
+  const [responderSteps, setResponderSteps] = useState<Array<{ stepNumber: number; action: string; quote: string }> | null>(null);
+  const [responderError, setResponderError] = useState("");
   const history = useSyncExternalStore(
     subscribeToHistory,
     getHistorySnapshot,
@@ -108,6 +112,44 @@ export default function Page() {
   const themeToggleLabel = isDarkMode
     ? "Chuyển sang giao diện sáng"
     : "Chuyển sang giao diện tối";
+
+  async function handleSelectScenario(scenario: "none" | "link" | "money" | "otp") {
+    setSelectedScenario(scenario);
+    if (scenario === "none") {
+      setResponderSteps(null);
+      setResponderError("");
+      return;
+    }
+
+    setResponderLoading(true);
+    setResponderError("");
+    setResponderSteps(null);
+
+    try {
+      const res = await fetch("/api/responder", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ messageText: message, scenario }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Không thể kết nối đến máy chủ ứng cứu");
+      }
+
+      const data = await res.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      setResponderSteps(data.steps || []);
+    } catch (err: any) {
+      console.error(err);
+      setResponderError(err.message || "Đã xảy ra lỗi khi liên hệ với Người ứng cứu.");
+    } finally {
+      setResponderLoading(false);
+    }
+  }
 
   function saveToHistory(msg: string, res: DetectiveResult) {
     const newItem: HistoryItem = {
@@ -124,6 +166,9 @@ export default function Page() {
   async function handleCheck() {
     setErrorMsg("");
     setResult(null);
+    setSelectedScenario(null);
+    setResponderSteps(null);
+    setResponderError("");
 
     const trimmed = message.trim();
     if (!trimmed) {
@@ -247,6 +292,9 @@ export default function Page() {
     setResult(item.result);
     setErrorMsg("");
     setIsSidebarOpen(false);
+    setSelectedScenario(null);
+    setResponderSteps(null);
+    setResponderError("");
   }
 
   return (
@@ -310,6 +358,9 @@ export default function Page() {
             setMessage("");
             setResult(null);
             setErrorMsg("");
+            setSelectedScenario(null);
+            setResponderSteps(null);
+            setResponderError("");
           }}
         >
           <span>+ Mới</span>
@@ -388,6 +439,9 @@ export default function Page() {
                 setMessage("");
                 setResult(null);
                 setErrorMsg("");
+                setSelectedScenario(null);
+                setResponderSteps(null);
+                setResponderError("");
               }}
             >
               <span className="text-2xl leading-none">+</span>
@@ -403,13 +457,22 @@ export default function Page() {
               Chế độ luyện tập
             </Link>
             <Link
-              className={`cursor-pointer hidden md:flex mb-8 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
+              className={`cursor-pointer hidden md:flex mb-3 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
                 ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
                 : "border-gray-300 bg-white hover:bg-gray-100"
                 }`}
               href="/thuvien"
             >
               Thư viện lừa đảo
+            </Link>
+            <Link
+              className={`cursor-pointer hidden md:flex mb-8 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
+                ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
+                : "border-gray-300 bg-white hover:bg-gray-100"
+                }`}
+              href="/danhba"
+            >
+              Danh bạ khẩn cấp
             </Link>
 
             <div className="flex min-h-0 flex-1 flex-col">
@@ -495,6 +558,9 @@ export default function Page() {
                       setMessage(btn.text);
                       setResult(null);
                       setErrorMsg("");
+                      setSelectedScenario(null);
+                      setResponderSteps(null);
+                      setResponderError("");
                     }}
                     className={`group min-w-0 cursor-pointer overflow-hidden rounded-lg border px-3 py-2 text-left shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 md:p-4 ${isDarkMode
                       ? "border-gray-700 bg-gray-800 hover:border-blue-500 hover:bg-gray-700"
@@ -754,6 +820,128 @@ export default function Page() {
                       >
                         {result.psychologyError}
                       </p>
+                    )}
+                  </div>
+                )}
+
+                {(result.riskLevel === "warning" || result.riskLevel === "danger") && (
+                  <div
+                    className={`rounded-xl border p-4 md:p-6 shadow-sm space-y-4 ${isDarkMode
+                      ? "border-gray-800 bg-gray-900"
+                      : "border-gray-200 bg-white"
+                      }`}
+                  >
+                    <h2
+                      className={`text-lg md:text-xl font-bold border-b pb-2 ${isDarkMode
+                        ? "border-gray-800 text-gray-100"
+                        : "border-gray-200 text-gray-850"
+                        }`}
+                    >
+                      Bác đã làm gì rồi?
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {(result.scenarios && result.scenarios.length === 4 ? result.scenarios : [
+                        { key: "none", label: "🛡️ Chưa làm gì cả" },
+                        { key: "link", label: "🔗 Đã bấm vào đường dẫn" },
+                        { key: "money", label: "💸 Đã chuyển khoản tiền" },
+                        { key: "otp", label: "🔑 Đã cung cấp mã OTP / mật khẩu" }
+                      ]).map((scen) => {
+                        const isSelected = selectedScenario === scen.key;
+                        const icon = scen.key === "none" ? "🛡️ " : scen.key === "link" ? "🔗 " : scen.key === "money" ? "💸 " : "🔑 ";
+                        const cleanLabel = scen.label.startsWith("🛡️") || scen.label.startsWith("🔗") || scen.label.startsWith("💸") || scen.label.startsWith("🔑")
+                          ? scen.label 
+                          : `${icon}${scen.label}`;
+
+                        return (
+                          <button
+                            key={scen.key}
+                            disabled={selectedScenario !== null}
+                            onClick={() => handleSelectScenario(scen.key as any)}
+                            className={`cursor-pointer rounded-xl px-4 py-3 text-base md:text-lg font-medium transition-colors text-left border ${
+                              isSelected
+                                ? scen.key === "none"
+                                  ? isDarkMode ? "bg-green-950 border-green-700 text-green-300" : "bg-green-50 border-green-200 text-green-700"
+                                  : isDarkMode ? "bg-red-950 border-red-700 text-red-300" : "bg-red-50 border-red-200 text-red-700"
+                                : isDarkMode ? "border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-200 disabled:opacity-50" : "border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-750 disabled:opacity-50"
+                            }`}
+                          >
+                            {cleanLabel}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {selectedScenario === "none" && (
+                      <div
+                        className={`mt-4 p-5 rounded-xl border text-base md:text-lg animate-in fade-in duration-300 ${isDarkMode
+                          ? "border-green-900 bg-green-950 text-green-200"
+                          : "border-green-200 bg-green-50 text-green-700"
+                          }`}
+                      >
+                        🌟 Bác thật tuyệt vời và tỉnh táo. Không thao tác hay nhấp vào bất kỳ thông tin nào trong tin nhắn là cách tốt nhất để bảo vệ mình. Hãy tiếp tục nâng cao cảnh giác bác nhé.
+                      </div>
+                    )}
+
+                    {responderLoading && (
+                      <div className="mt-4 p-5 flex flex-col items-center justify-center space-y-3">
+                        <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                        <p className={`text-base md:text-lg ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+                          Đang liên hệ Người ứng cứu khẩn cấp...
+                        </p>
+                      </div>
+                    )}
+
+                    {responderError && (
+                      <div
+                        className={`mt-4 p-4 rounded-xl text-base md:text-lg border ${isDarkMode
+                          ? "border-red-900 bg-red-950 text-red-200"
+                          : "border-red-200 bg-red-100 text-red-700"
+                          }`}
+                      >
+                        ⚠️ {responderError}
+                      </div>
+                    )}
+
+                    {responderSteps && responderSteps.length > 0 && (
+                      <div className="mt-4 space-y-4 animate-in fade-in duration-300">
+                        <div className={`p-4 rounded-xl border-l-4 ${
+                          isDarkMode ? "bg-red-950/40 border-red-600" : "bg-red-50 border-red-500"
+                        }`}>
+                          <h3 className={`text-base md:text-lg font-bold mb-1 ${isDarkMode ? "text-red-300" : "text-red-750"}`}>
+                            🚨 Kịch bản ứng cứu khẩn cấp từ Người ứng cứu
+                          </h3>
+                          <p className={`text-sm md:text-base ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+                            Bác cần làm chính xác và nhanh chóng các bước dưới đây để giảm thiểu tối đa thiệt hại.
+                          </p>
+                        </div>
+
+                        <div className="space-y-3">
+                          {responderSteps.map((step) => (
+                            <div
+                              key={step.stepNumber}
+                              className={`p-4 md:p-5 rounded-xl border ${
+                                isDarkMode ? "border-gray-800 bg-gray-900/60" : "border-gray-200 bg-gray-50"
+                              }`}
+                            >
+                              <h4 className={`text-base md:text-lg font-bold flex gap-2 items-center mb-2 ${
+                                isDarkMode ? "text-gray-100" : "text-gray-800"
+                              }`}>
+                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold shrink-0">
+                                  {step.stepNumber}
+                                </span>
+                                {step.action}
+                              </h4>
+                              {step.quote && (
+                                <div className={`p-3 rounded-lg border italic text-sm md:text-base ${
+                                  isDarkMode ? "border-gray-700 bg-gray-950 text-gray-300" : "border-gray-350 bg-white text-gray-700"
+                                }`}>
+                                  &ldquo;{step.quote}&rdquo;
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
