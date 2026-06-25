@@ -101,6 +101,7 @@ export default function Page() {
   );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | undefined>(undefined);
   const warningCardRef = useRef<HTMLDivElement>(null);
   const messageLength = message.length;
   const themeToggleLabel = isDarkMode
@@ -170,10 +171,35 @@ export default function Page() {
     }
   }
 
-  async function handleDownloadCard() {
+  async function handleShareAndDownloadCard() {
     if (!warningCardRef.current || !result) return;
     try {
       setIsDownloading(true);
+
+      // 1. Gửi dữ liệu lên Server để lấy Share ID
+      let currentShareUrl = typeof window !== "undefined" ? window.location.origin : "https://scamcheck.vn";
+      try {
+        const res = await fetch('/api/share/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, result })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.shareId) {
+            const origin = typeof window !== "undefined" ? window.location.origin : "https://scamcheck.vn";
+            currentShareUrl = `${origin}/share/${data.shareId}`;
+            setShareUrl(currentShareUrl);
+            // Đợi component cập nhật xong URL mới vào DOM
+            await new Promise((resolve) => setTimeout(resolve, 200));
+          }
+        }
+      } catch (apiErr) {
+        console.error("Lỗi khi đẩy dữ liệu lên server:", apiErr);
+        // Nếu lỗi, vẫn tiếp tục sinh ảnh với URL mặc định
+      }
+
+      // 2. Chụp ảnh thẻ cảnh báo
       const canvas = await html2canvas(warningCardRef.current, {
         scale: 2, // High resolution
         useCORS: true,
@@ -729,7 +755,7 @@ export default function Page() {
 
                 <div className="mt-6 flex justify-center">
                   <button
-                    onClick={handleDownloadCard}
+                    onClick={handleShareAndDownloadCard}
                     disabled={isDownloading}
                     className={`flex items-center gap-2 cursor-pointer rounded-xl px-6 py-3 text-base md:text-lg font-bold transition-colors shadow-md disabled:opacity-70 ${
                       isDarkMode
@@ -750,12 +776,12 @@ export default function Page() {
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                       ></path>
                     </svg>
-                    {isDownloading ? "Đang tạo ảnh..." : "Tải ảnh Thẻ Cảnh Báo"}
+                    {isDownloading ? "Đang tạo QR & Tải ảnh..." : "Tạo QR & Tải ảnh Thẻ Cảnh Báo"}
                   </button>
                 </div>
 
                 <div style={{ position: "absolute", left: 0, top: 0, zIndex: -100, opacity: 0, pointerEvents: "none" }}>
-                  <WarningCard ref={warningCardRef} message={message} result={result} url={typeof window !== "undefined" ? window.location.origin : "https://scamcheck.vn"} />
+                  <WarningCard ref={warningCardRef} message={message} result={result} url={shareUrl || (typeof window !== "undefined" ? window.location.origin : "https://scamcheck.vn")} />
                 </div>
               </div>
             )}
