@@ -10,6 +10,7 @@ import TamLy from "../public/tl.png";
 import Image from "next/image";
 import WarningCard from "./components/WarningCard";
 import html2canvas from "html2canvas";
+import { QRCodeSVG } from "qrcode.react";
 
 type HistoryItem = {
   message: string;
@@ -204,6 +205,10 @@ export default function Page() {
         scale: 2, // High resolution
         useCORS: true,
         backgroundColor: null,
+        windowWidth: warningCardRef.current.scrollWidth,
+        windowHeight: warningCardRef.current.scrollHeight,
+        x: 0,
+        y: 0,
       });
       const dataUrl = canvas.toDataURL("image/png");
       const link = document.createElement("a");
@@ -780,7 +785,36 @@ export default function Page() {
                   </button>
                 </div>
 
-                <div style={{ position: "absolute", left: 0, top: 0, zIndex: -100, opacity: 0, pointerEvents: "none" }}>
+                {shareUrl && (
+                  <div className={`mt-8 p-6 border rounded-2xl flex flex-col items-center shadow-sm ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
+                    <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}>Chia sẻ trực tuyến kết quả này</h3>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4">
+                      <QRCodeSVG value={shareUrl} size={180} />
+                    </div>
+                    <div className="flex items-center gap-2 w-full max-w-sm">
+                      <input 
+                        type="text" 
+                        readOnly 
+                        value={shareUrl} 
+                        className={`flex-1 px-3 py-2.5 text-sm rounded-lg border focus:outline-none ${isDarkMode ? "bg-gray-900 border-gray-700 text-gray-200" : "bg-gray-50 border-gray-300 text-gray-800"}`}
+                      />
+                      <button 
+                        onClick={() => {
+                          navigator.clipboard.writeText(shareUrl);
+                          alert("Đã sao chép đường dẫn!");
+                        }}
+                        className={`px-4 py-2.5 text-sm font-bold rounded-lg transition-colors ${isDarkMode ? "bg-blue-600 hover:bg-blue-500 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"}`}
+                      >
+                        Copy
+                      </button>
+                    </div>
+                    <p className={`mt-3 text-sm text-center ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                      Người thân của bạn có thể quét mã QR này hoặc truy cập đường dẫn trên để xem kết quả phân tích. (Tự động xoá sau 24 giờ)
+                    </p>
+                  </div>
+                )}
+
+                <div style={{ position: "fixed", left: "-9999px", top: 0, zIndex: -100, opacity: 0, pointerEvents: "none" }}>
                   <WarningCard ref={warningCardRef} message={message} result={result} url={shareUrl || (typeof window !== "undefined" ? window.location.origin : "https://scamcheck.vn")} />
                 </div>
               </div>

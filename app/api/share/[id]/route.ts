@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import connectToDatabase from "@/lib/mongodb";
-import SharedResult from "@/models/SharedResult";
+import { getDb } from "@/lib/sqlite";
 
 export async function GET(
   req: Request,
@@ -16,9 +15,12 @@ export async function GET(
       );
     }
 
-    await connectToDatabase();
+    const db = await getDb();
 
-    const sharedData = await SharedResult.findOne({ shareId: id }).lean();
+    // Tự động dọn rác trước khi query
+    await db.run(`DELETE FROM shared_results WHERE created_at <= datetime('now', '-1 day')`);
+
+    const sharedData = await db.get(`SELECT * FROM shared_results WHERE share_id = ?`, [id]);
 
     if (!sharedData) {
       return NextResponse.json(
@@ -27,7 +29,11 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(sharedData);
+    return NextResponse.json({
+      shareId: sharedData.share_id,
+      message: sharedData.message,
+      result: JSON.parse(sharedData.result),
+    });
   } catch (error) {
     console.error("Lỗi khi truy xuất dữ liệu chia sẻ:", error);
     return NextResponse.json(
