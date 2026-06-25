@@ -1,12 +1,9 @@
 "use client";
 
-import { useState, useMemo, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { FaMoon, FaSun } from "react-icons/fa6";
 import RiskBadge from "./components/level";
-import UrlAnalysisPanel from "./components/UrlAnalysisPanel";
 import { DetectiveResult } from "@/types/detective";
-import { extractUrls } from "./lib/url-extractor";
-import { analyzeUrls } from "./lib/domain-checker";
 import Link from "next/link";
 import ThamTu from "../public/tt.png";
 import TamLy from "../public/tl.png";
@@ -105,12 +102,6 @@ export default function Page() {
   const themeToggleLabel = isDarkMode
     ? "Chuyển sang giao diện sáng"
     : "Chuyển sang giao diện tối";
-
-  const urlAnalysisResults = useMemo(() => {
-    if (!result || !message.trim()) return [];
-    const extracted = extractUrls(message);
-    return analyzeUrls(extracted);
-  }, [result, message]);
 
   function saveToHistory(msg: string, res: DetectiveResult) {
     const newItem: HistoryItem = {
@@ -544,13 +535,6 @@ export default function Page() {
                   </span>
                   <RiskBadge level={result.riskLevel} />
                 </div>
-
-                {urlAnalysisResults.length > 0 && (
-                  <UrlAnalysisPanel
-                    urls={urlAnalysisResults}
-                    isDarkMode={isDarkMode}
-                  />
-                )}
 
                 <div
                   className={`rounded-xl border p-4 md:p-6 shadow-sm ${isDarkMode
