@@ -6,21 +6,22 @@ export default function level({ level }: Props) {
   const config = {
     safe: {
       label: "An toàn",
-      color: "bg-green-500",
+      color: "#22c55e",
     },
     warning: {
       label: "Nghi ngờ",
-      color: "bg-yellow-500",
+      color: "#eab308",
     },
     danger: {
       label: "Nguy hiểm",
-      color: "bg-red-500",
+      color: "#ef4444",
     },
   };
 
   return (
     <div
-      className={`${config[level].color} text-white px-4 py-2 rounded font-bold`}
+      className={`px-4 py-2 rounded font-bold`}
+      style={{ backgroundColor: config[level].color, color: "#ffffff" }}
     >
       {config[level].label}
     </div>

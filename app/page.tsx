@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore, useRef } from "react";
 import { FaMoon, FaSun } from "react-icons/fa6";
 import RiskBadge from "./components/level";
 import { DetectiveResult } from "@/types/detective";
@@ -8,6 +8,8 @@ import Link from "next/link";
 import ThamTu from "../public/tt.png";
 import TamLy from "../public/tl.png";
 import Image from "next/image";
+import WarningCard from "./components/WarningCard";
+import html2canvas from "html2canvas";
 
 type HistoryItem = {
   message: string;
@@ -98,6 +100,8 @@ export default function Page() {
     getServerHistorySnapshot,
   );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const warningCardRef = useRef<HTMLDivElement>(null);
   const messageLength = message.length;
   const themeToggleLabel = isDarkMode
     ? "Chuyển sang giao diện sáng"
@@ -163,6 +167,28 @@ export default function Page() {
       );
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDownloadCard() {
+    if (!warningCardRef.current || !result) return;
+    try {
+      setIsDownloading(true);
+      const canvas = await html2canvas(warningCardRef.current, {
+        scale: 2, // High resolution
+        useCORS: true,
+        backgroundColor: null,
+      });
+      const dataUrl = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.download = `scamcheck-canh-bao-${Date.now()}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Lỗi khi tạo ảnh thẻ cảnh báo:", err);
+      alert("Đã có lỗi xảy ra khi tạo ảnh. Vui lòng thử lại sau.");
+    } finally {
+      setIsDownloading(false);
     }
   }
 
@@ -337,13 +363,22 @@ export default function Page() {
               <span>Tìm kiếm mới</span>
             </button>
             <Link
-              className={`cursor-pointer hidden md:flex mb-8 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
+              className={`cursor-pointer hidden md:flex mb-3 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
                 ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
                 : "border-gray-300 bg-white hover:bg-gray-100"
                 }`}
               href="/luyentap"
             >
               Chế độ luyện tập
+            </Link>
+            <Link
+              className={`cursor-pointer hidden md:flex mb-8 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
+                ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
+                : "border-gray-300 bg-white hover:bg-gray-100"
+                }`}
+              href="/thuvien"
+            >
+              Thư viện lừa đảo
             </Link>
 
             <div className="flex min-h-0 flex-1 flex-col">
@@ -574,7 +609,7 @@ export default function Page() {
                       : "border-gray-200 text-gray-800"
                       }`}
                   >
-                    <Image src={ThamTu} alt="Tham Tu" height={20} width={60} />{" "}
+                    <Image src={ThamTu} alt="Tham Tu" height={20} width={60} style={{ width: "auto", height: "auto" }} />{" "}
                     Phân tích kỹ thuật từ thám tử
                   </h2>
 
@@ -670,7 +705,7 @@ export default function Page() {
                       className={`mb-3 md:mb-4 text-lg md:text-xl font-bold flex items-center gap-2 ${isDarkMode ? "text-amber-100" : "text-amber-900"
                         }`}
                     >
-                      <Image src={TamLy} alt="Tam Ly" height={20} width={60} />{" "}
+                      <Image src={TamLy} alt="Tam Ly" height={20} width={60} style={{ width: "auto", height: "auto" }} />{" "}
                       Cô tâm lý
                     </h2>
                     {result.psychologyAdvice && (
@@ -691,6 +726,37 @@ export default function Page() {
                     )}
                   </div>
                 )}
+
+                <div className="mt-6 flex justify-center">
+                  <button
+                    onClick={handleDownloadCard}
+                    disabled={isDownloading}
+                    className={`flex items-center gap-2 cursor-pointer rounded-xl px-6 py-3 text-base md:text-lg font-bold transition-colors shadow-md disabled:opacity-70 ${
+                      isDarkMode
+                        ? "bg-green-700 text-white hover:bg-green-600"
+                        : "bg-green-600 text-white hover:bg-green-700"
+                    }`}
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      ></path>
+                    </svg>
+                    {isDownloading ? "Đang tạo ảnh..." : "Tải ảnh Thẻ Cảnh Báo"}
+                  </button>
+                </div>
+
+                <div style={{ position: "absolute", left: 0, top: 0, zIndex: -100, opacity: 0, pointerEvents: "none" }}>
+                  <WarningCard ref={warningCardRef} message={message} result={result} />
+                </div>
               </div>
             )}
           </div>
