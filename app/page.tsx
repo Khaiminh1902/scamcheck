@@ -217,6 +217,7 @@ export default function Page() {
     }
   }
 
+  /*
   async function handleShareAndDownloadCard() {
     if (!warningCardRef.current || !result) return;
     try {
@@ -267,6 +268,7 @@ export default function Page() {
       setIsDownloading(false);
     }
   }
+  */
 
   function escapeHtml(text: string) {
     return text
@@ -946,6 +948,7 @@ export default function Page() {
                   </div>
                 )}
 
+                {/* 
                 <div className="mt-6 flex justify-center">
                   <button
                     onClick={handleShareAndDownloadCard}
@@ -1005,6 +1008,7 @@ export default function Page() {
                 <div style={{ position: "fixed", left: "-9999px", top: 0, zIndex: -100, opacity: 0, pointerEvents: "none" }}>
                   <WarningCard ref={warningCardRef} message={message} result={result} url={shareUrl || (typeof window !== "undefined" ? window.location.origin : "https://scamcheck.vn")} />
                 </div>
+                */}
               </div>
             )}
           </div>

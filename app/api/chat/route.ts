@@ -185,7 +185,7 @@ async function callGemini(prompt: string) {
           responseMimeType: "application/json",
           responseSchema: detectiveResponseSchema,
           temperature: 0.2,
-          maxOutputTokens: 1600,
+          maxOutputTokens: 8192,
         },
       }),
     },
@@ -256,12 +256,19 @@ Chỉ trả về JSON.
 `;
 
     const text = await callGemini(prompt);
-    const cleaned = cleanJsonText(text);
+    
+    let cleanText = text.trim();
+    if (cleanText.startsWith("```json")) cleanText = cleanText.substring(7);
+    else if (cleanText.startsWith("```")) cleanText = cleanText.substring(3);
+    if (cleanText.endsWith("```")) cleanText = cleanText.substring(0, cleanText.length - 3);
+    cleanText = cleanText.trim();
+    cleanText = cleanText.replace(/[\n\r\t]/g, " ");
+
     let parsed: GeminiDetectiveResult = {};
     let hasParseError = false;
 
     try {
-      parsed = parseDetectiveJson(cleaned);
+      parsed = JSON.parse(cleanText);
     } catch (e) {
       console.error("JSON parse failed:", e);
       parsed = {};

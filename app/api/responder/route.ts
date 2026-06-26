@@ -55,7 +55,7 @@ async function callGemini(prompt: string) {
           responseMimeType: "application/json",
           responseSchema: responderResponseSchema,
           temperature: 0.1,
-          maxOutputTokens: 1600,
+          maxOutputTokens: 8192,
         },
       }),
     }
@@ -115,7 +115,25 @@ Trả về kết quả dưới dạng JSON theo đúng schema được yêu cầ
     const text = await callGemini(prompt);
     
     // Parse để lọc sạch và kiểm chứng không có dấu chấm than trong các trường văn bản
-    let parsedResult = JSON.parse(text);
+    let cleanText = text.trim();
+    if (cleanText.startsWith("```json")) cleanText = cleanText.substring(7);
+    else if (cleanText.startsWith("```")) cleanText = cleanText.substring(3);
+    if (cleanText.endsWith("```")) cleanText = cleanText.substring(0, cleanText.length - 3);
+    cleanText = cleanText.trim();
+    // Thay thế các ký tự xuống dòng thực tế (gây lỗi Unterminated string) bằng khoảng trắng
+    cleanText = cleanText.replace(/[\n\r\t]/g, " ");
+
+    let parsedResult;
+    try {
+      parsedResult = JSON.parse(cleanText);
+    } catch (parseErr) {
+      console.error("Lỗi parse JSON Responder:", parseErr, "Raw text:", text);
+      return NextResponse.json(
+        { error: "AI trả về dữ liệu không hợp lệ. Vui lòng thử lại." },
+        { status: 500 }
+      );
+    }
+
     if (parsedResult && Array.isArray(parsedResult.steps)) {
       parsedResult.steps = parsedResult.steps.map((step: { stepNumber: number; action: string; quote: string }) => {
         return {
