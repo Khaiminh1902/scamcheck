@@ -176,6 +176,7 @@ export default function Page() {
     window.dispatchEvent(new Event("scamcheck-history"));
   }
 
+
   async function handleCheck() {
     setErrorMsg("");
     setResult(null);
@@ -298,7 +299,7 @@ export default function Page() {
 
     return text.replace(
       escapedExcerpt,
-      `<mark class="bg-yellow-300">${escapedExcerpt}</mark>`,
+      `<mark class="bg-accent-amber">${escapedExcerpt}</mark>`,
     );
   }
 
@@ -314,21 +315,21 @@ export default function Page() {
 
   return (
     <div
-      className={`flex flex-col min-h-screen md:h-screen font-sans transition-colors ${isDarkMode ? "bg-gray-950 text-gray-100" : "bg-white text-black"
+      className={`flex flex-col min-h-screen md:h-screen font-sans transition-colors ${isDarkMode ? "dark bg-zinc-900 text-zinc-100" : "bg-canvas text-ink"
         }`}
       style={{ colorScheme: isDarkMode ? "dark" : "light" }}
     >
       <header
         className={`md:hidden flex items-center justify-between px-5 py-4 border-b shrink-0 relative z-10 transition-colors ${isDarkMode
-          ? "border-gray-800 bg-gray-900"
-          : "border-gray-200 bg-gray-50"
+          ? "border-zinc-800/80 bg-zinc-900"
+          : "border-hairline bg-canvas"
           }`}
       >
         <div className="flex items-center gap-3">
           <button
             className={`cursor-pointer p-2 -ml-2 rounded-md transition-colors ${isDarkMode
-              ? "text-gray-300 hover:bg-gray-800"
-              : "text-gray-600 hover:bg-gray-200"
+              ? "text-zinc-300 hover:bg-zinc-800"
+              : "text-ink hover:bg-surface-soft"
               }`}
             onClick={() => setIsSidebarOpen(true)}
           >
@@ -346,15 +347,15 @@ export default function Page() {
               ></path>
             </svg>
           </button>
-          <h1 className="text-2xl font-bold">Scam Check</h1>
+          <h1 className={`text-2xl font-bold ${isDarkMode ? "text-zinc-100" : "text-ink"}`}>Scam Check</h1>
           <button
             type="button"
             aria-label={themeToggleLabel}
             title={themeToggleLabel}
             onClick={() => setIsDarkMode((current) => !current)}
             className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition-colors ${isDarkMode
-              ? "border-gray-700 bg-gray-800 text-yellow-300 hover:bg-gray-700"
-              : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+              ? "border-zinc-800/80 bg-zinc-900 text-yellow-300 hover:bg-zinc-800"
+              : "border-hairline bg-canvas text-ink hover:bg-surface-soft"
               }`}
           >
             {isDarkMode ? (
@@ -366,8 +367,8 @@ export default function Page() {
         </div>
         <button
           className={`cursor-pointer flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${isDarkMode
-            ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
-            : "border-gray-300 bg-white hover:bg-gray-100"
+            ? "border-zinc-800/80 bg-zinc-900 hover:bg-zinc-800"
+            : "border-hairline bg-canvas hover:bg-surface-soft"
             }`}
           onClick={() => {
             setMessage("");
@@ -392,25 +393,25 @@ export default function Page() {
 
         <aside
           className={`
-          fixed inset-y-0 left-0 z-50 w-[70vw] max-w-96 flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}
+          fixed inset-y-0 left-0 z-50 w-[70vw] max-w-96 flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${isDarkMode ? "bg-zinc-900" : "bg-canvas"}
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          md:relative md:translate-x-0 md:w-80 md:border-r ${isDarkMode ? "md:border-gray-800" : "md:border-gray-200"} md:shadow-none md:z-auto shrink-0 overflow-hidden
+          md:relative md:translate-x-0 md:w-80 md:border-r ${isDarkMode ? "border-zinc-800/80" : "md:border-gray-200"} md:shadow-none md:z-auto shrink-0 overflow-hidden
         `}
         >
           <div
-            className={`flex mb-6 items-center justify-between px-5 pt-6 pb-2 border-b md:border-none shrink-0 ${isDarkMode ? "border-gray-800" : "border-gray-200"
+            className={`flex mb-6 items-center justify-between px-5 pt-6 pb-2 border-b md:border-none shrink-0 ${isDarkMode ? "border-zinc-800/80" : "border-hairline"
               }`}
           >
             <div className="hidden md:flex items-center gap-3">
-              <h1 className="text-2xl font-bold">Scam Check</h1>
+              <h1 className={`text-2xl font-bold ${isDarkMode ? "text-zinc-100" : "text-ink"}`}>Scam Check</h1>
               <button
                 type="button"
                 aria-label={themeToggleLabel}
                 title={themeToggleLabel}
                 onClick={() => setIsDarkMode((current) => !current)}
                 className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition-colors ${isDarkMode
-                  ? "border-gray-700 bg-gray-800 text-yellow-300 hover:bg-gray-700"
-                  : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                  ? "border-zinc-800/80 bg-zinc-900 text-yellow-300 hover:bg-zinc-800"
+                  : "border-hairline bg-canvas text-ink hover:bg-surface-soft"
                   }`}
               >
                 {isDarkMode ? (
@@ -420,11 +421,11 @@ export default function Page() {
                 )}
               </button>
             </div>
-            <h1 className="text-xl font-bold md:hidden">Lịch sử</h1>
+            <h1 className={`text-xl font-bold md:hidden ${isDarkMode ? "text-zinc-100" : "text-ink"}`}>Lịch sử</h1>
             <button
               className={`cursor-pointer md:hidden p-2 -mr-2 rounded-md transition-colors ${isDarkMode
-                ? "text-gray-300 hover:bg-gray-800"
-                : "text-gray-500 hover:bg-gray-200"
+                ? "text-zinc-300 hover:bg-zinc-800"
+                : "text-muted hover:bg-surface-soft"
                 }`}
               onClick={() => setIsSidebarOpen(false)}
             >
@@ -447,8 +448,8 @@ export default function Page() {
           <div className="px-5 pb-6 flex flex-1 min-h-0 flex-col">
             <button
               className={`cursor-pointer hidden md:flex mb-3 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
-                ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
-                : "border-gray-300 bg-white hover:bg-gray-100"
+                ? "border-zinc-800/80 bg-zinc-900 hover:bg-zinc-800"
+                : "border-hairline bg-canvas hover:bg-surface-soft"
                 }`}
               onClick={() => {
                 setMessage("");
@@ -464,8 +465,8 @@ export default function Page() {
             </button>
             <Link
               className={`cursor-pointer hidden md:flex mb-3 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
-                ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
-                : "border-gray-300 bg-white hover:bg-gray-100"
+                ? "border-zinc-800/80 bg-zinc-900 hover:bg-zinc-800"
+                : "border-hairline bg-canvas hover:bg-surface-soft"
                 }`}
               href="/luyentap"
             >
@@ -473,8 +474,8 @@ export default function Page() {
             </Link>
             <Link
               className={`cursor-pointer hidden md:flex mb-3 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
-                ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
-                : "border-gray-300 bg-white hover:bg-gray-100"
+                ? "border-zinc-800/80 bg-zinc-900 hover:bg-zinc-800"
+                : "border-hairline bg-canvas hover:bg-surface-soft"
                 }`}
               href="/thuvien"
             >
@@ -482,8 +483,8 @@ export default function Page() {
             </Link>
             <Link
               className={`cursor-pointer hidden md:flex mb-8 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
-                ? "border-gray-700 bg-gray-800 hover:bg-gray-700"
-                : "border-gray-300 bg-white hover:bg-gray-100"
+                ? "border-zinc-800/80 bg-zinc-900 hover:bg-zinc-800"
+                : "border-hairline bg-canvas hover:bg-surface-soft"
                 }`}
               href="/danhba"
             >
@@ -493,7 +494,7 @@ export default function Page() {
             <div className="flex min-h-0 flex-1 flex-col">
               <div className="flex items-center justify-between mb-4 px-1">
                 <h2
-                  className={`text-base font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                  className={`text-base font-semibold uppercase tracking-wider ${isDarkMode ? "text-zinc-400" : "text-ink"
                     }`}
                 >
                   Lịch sử tìm kiếm ({history.length})
@@ -503,8 +504,8 @@ export default function Page() {
                     onClick={clearHistory}
                     className={`cursor-pointer text-sm px-2 py-1 rounded border transition-colors ${
                       isDarkMode
-                        ? "border-red-900 text-red-400 hover:bg-red-950/50 hover:text-red-300"
-                        : "border-red-200 text-red-600 hover:bg-red-50"
+                        ? "border-error text-red-400 hover:bg-red-950/50 hover:text-red-300"
+                        : "border-error text-red-600 hover:bg-red-50"
                     }`}
                   >
                     Xóa tất cả
@@ -523,7 +524,7 @@ export default function Page() {
               >
                 {history.length === 0 && (
                   <p
-                    className={`px-1 text-lg ${isDarkMode ? "text-gray-500" : "text-gray-500"
+                    className={`px-1 text-lg ${isDarkMode ? "text-zinc-400" : "text-muted"
                       }`}
                   >
                     Chưa có lịch sử.
@@ -533,8 +534,8 @@ export default function Page() {
                   <div
                     key={idx}
                     className={`flex items-start justify-between w-full rounded-xl border border-transparent transition-colors pr-2 ${isDarkMode
-                      ? "hover:bg-gray-800 hover:border-gray-700"
-                      : "hover:bg-gray-200 hover:border-gray-300"
+                      ? "hover:bg-zinc-800/50 hover:border-zinc-700"
+                      : "hover:bg-surface-soft hover:border-hairline-soft"
                       }`}
                   >
                     <button
@@ -545,7 +546,7 @@ export default function Page() {
                         {item.message}
                       </p>
                       <p
-                        className={`text-sm mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-500"
+                        className={`text-sm mt-1 ${isDarkMode ? "text-zinc-400" : "text-muted"
                           }`}
                       >
                         {item.date}
@@ -559,8 +560,8 @@ export default function Page() {
                       title="Xóa đoạn chat này"
                       className={`cursor-pointer mt-3 p-2 rounded-lg transition-colors ${
                         isDarkMode
-                          ? "text-gray-400 hover:text-red-400 hover:bg-gray-700"
-                          : "text-gray-500 hover:text-red-500 hover:bg-gray-300"
+                          ? "text-zinc-400 hover:text-red-400 hover:bg-zinc-800"
+                          : "text-muted hover:text-red-500 hover:bg-gray-300"
                       }`}
                     >
                       <svg
@@ -588,20 +589,20 @@ export default function Page() {
           <div className="mx-auto w-full max-w-4xl">
             <div
               className={`mb-5 rounded-xl border p-3 md:mb-6 md:p-5 transition-colors ${isDarkMode
-                ? "border-gray-800 bg-gray-900"
-                : "border-gray-200 bg-gray-50"
+                ? "border-zinc-800/80 bg-zinc-900"
+                : "border-hairline bg-canvas"
                 }`}
             >
               <div className="mb-3 flex flex-col gap-1 md:mb-4 md:flex-row md:items-end md:justify-between">
                 <div>
                   <p
-                    className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-400" : "text-gray-500"
+                    className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-zinc-400" : "text-muted"
                       }`}
                   >
                     Thử nhanh
                   </p>
                   <h2
-                    className={`text-base font-bold md:text-xl ${isDarkMode ? "text-gray-100" : "text-gray-900"
+                    className={`text-base font-bold md:text-xl ${isDarkMode ? "text-zinc-100" : "text-ink"
                       }`}
                   >
                     Tin nhắn mẫu để thử nghiệm
@@ -622,26 +623,26 @@ export default function Page() {
                       setResponderError("");
                     }}
                     className={`group min-w-0 cursor-pointer overflow-hidden rounded-lg border px-3 py-2 text-left shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 md:p-4 ${isDarkMode
-                      ? "border-gray-700 bg-gray-800 hover:border-blue-500 hover:bg-gray-700"
-                      : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50"
+                      ? "border-zinc-800/80 bg-zinc-900 hover:border-blue-500 hover:bg-zinc-800"
+                      : "border-hairline bg-canvas hover:border-blue-300 hover:bg-blue-50"
                       }`}
                   >
                     <span
                       className={`hidden md:mb-2 md:inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wider ${isDarkMode
                         ? "bg-blue-950 text-blue-200"
-                        : "bg-blue-100 text-blue-700 group-hover:bg-white"
+                        : "bg-surface-card text-blue-700 group-hover:bg-white"
                         }`}
                     >
                       {btn.tone}
                     </span>
                     <span
-                      className={`block w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold md:text-lg ${isDarkMode ? "text-gray-100" : "text-gray-900"
+                      className={`block w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold md:text-lg ${isDarkMode ? "text-zinc-100" : "text-ink"
                         }`}
                     >
                       {btn.label}
                     </span>
                     <span
-                      className={`mt-0.5 block w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm md:mt-1 md:line-clamp-2 md:whitespace-normal md:text-sm md:wrap-anywhere ${isDarkMode ? "text-gray-400" : "text-gray-500"
+                      className={`mt-0.5 block w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm md:mt-1 md:line-clamp-2 md:whitespace-normal md:text-sm md:wrap-anywhere ${isDarkMode ? "text-zinc-400" : "text-muted"
                         }`}
                     >
                       <span className="md:hidden">
@@ -656,8 +657,8 @@ export default function Page() {
 
             <textarea
               className={`h-40 md:h-64 w-full resize-none rounded-xl border p-4 md:p-5 text-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-sm ${isDarkMode
-                ? "border-gray-700 bg-gray-900 text-gray-100 placeholder:text-gray-500"
-                : "border-gray-300 bg-white text-black placeholder:text-gray-500"
+                ? "border-zinc-800/80 bg-zinc-900 text-zinc-100 placeholder:text-gray-500"
+                : "border-hairline bg-canvas text-ink placeholder:text-gray-500"
                 }`}
               placeholder="Dán tin SMS, email hoặc đoạn chat cần kiểm tra vào đây..."
               value={message}
@@ -669,8 +670,8 @@ export default function Page() {
                 className={`text-sm md:text-base ${messageLength > 5000
                   ? "text-red-500"
                   : isDarkMode
-                    ? "text-gray-400"
-                    : "text-gray-500"
+                    ? "text-zinc-400"
+                    : "text-muted"
                   }`}
               >
                 {messageLength}/5000
@@ -680,8 +681,8 @@ export default function Page() {
             {errorMsg && (
               <div
                 className={`mt-4 p-4 rounded-lg text-lg border ${isDarkMode
-                  ? "border-red-900 bg-red-950 text-red-200"
-                  : "border-red-200 bg-red-100 text-red-700"
+                  ? "border-error bg-red-950 text-red-200"
+                  : "border-error bg-error text-on-primary text-error"
                   }`}
               >
                 ⚠️ {errorMsg}
@@ -693,8 +694,8 @@ export default function Page() {
                 onClick={handleCheck}
                 disabled={loading}
                 className={`cursor-pointer rounded-xl px-8 py-4 text-xl font-bold transition-colors w-full md:w-auto shadow-md disabled:bg-gray-400 ${isDarkMode
-                  ? "bg-red-600 text-white hover:bg-red-500"
-                  : "bg-red-600 text-white hover:bg-red-700"
+                  ? "bg-red-600 text-zinc-100 hover:bg-primary-active"
+                  : "bg-red-600 text-on-dark hover:bg-primary-active"
                   }`}
               >
                 {loading ? "Đang phân tích..." : "Kiểm tra rủi ro"}
@@ -704,13 +705,13 @@ export default function Page() {
             {loading && (
               <div
                 className={`mt-10 p-6 md:p-10 flex flex-col items-center justify-center space-y-4 rounded-xl border ${isDarkMode
-                  ? "border-gray-800 bg-gray-900"
-                  : "border-gray-200 bg-gray-50"
+                  ? "border-zinc-800/80 bg-zinc-900"
+                  : "border-hairline bg-canvas"
                   }`}
               >
-                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 <p
-                  className={`text-lg md:text-xl font-medium text-center ${isDarkMode ? "text-gray-300" : "text-gray-600"
+                  className={`text-lg md:text-xl font-medium text-center ${isDarkMode ? "text-zinc-300" : "text-ink"
                     }`}
                 >
                   Thám tử đang soi tin nhắn, xin bác chờ chút ...
@@ -729,20 +730,20 @@ export default function Page() {
 
                 <div
                   className={`rounded-xl border p-4 md:p-6 shadow-sm ${isDarkMode
-                    ? "border-gray-800 bg-gray-900"
-                    : "border-gray-200 bg-white"
+                    ? "border-zinc-800/80 bg-zinc-900"
+                    : "border-hairline bg-canvas"
                     }`}
                 >
                   <h2
                     className={`mb-3 md:mb-4 text-lg md:text-xl font-bold border-b pb-2 ${isDarkMode
-                      ? "border-gray-800 text-gray-100"
-                      : "border-gray-200 text-gray-800"
+                      ? "border-zinc-800/80 text-zinc-100"
+                      : "border-hairline text-ink"
                       }`}
                   >
                     Nội dung đã phân tích
                   </h2>
                   <div
-                    className={`text-base md:text-lg leading-relaxed ${isDarkMode ? "text-gray-300" : "text-gray-700"
+                    className={`text-base md:text-lg leading-relaxed ${isDarkMode ? "text-zinc-300" : "text-ink"
                       }`}
                     dangerouslySetInnerHTML={{
                       __html: (result.scamSigns || []).reduce(
@@ -755,14 +756,14 @@ export default function Page() {
 
                 <div
                   className={`rounded-xl border p-4 md:p-6 shadow-sm ${isDarkMode
-                    ? "border-gray-800 bg-gray-900"
-                    : "border-gray-200 bg-white"
+                    ? "border-zinc-800/80 bg-zinc-900"
+                    : "border-hairline bg-canvas"
                     }`}
                 >
                   <h2
                     className={`mb-4 text-lg md:text-xl font-bold border-b pb-2 flex items-center gap-2 ${isDarkMode
-                      ? "border-gray-800 text-gray-100"
-                      : "border-gray-200 text-gray-800"
+                      ? "border-zinc-800/80 text-zinc-100"
+                      : "border-hairline text-ink"
                       }`}
                   >
                     <Image src={ThamTu} alt="Tham Tu" height={20} width={60} style={{ width: "auto", height: "auto" }} />{" "}
@@ -771,7 +772,7 @@ export default function Page() {
 
                   <div className="space-y-4">
                     <h3
-                      className={`text-base md:text-lg font-bold ${isDarkMode ? "text-gray-100" : "text-gray-800"
+                      className={`text-base md:text-lg font-bold ${isDarkMode ? "text-zinc-100" : "text-ink"
                         }`}
                     >
                       Dấu hiệu lừa đảo phát hiện được
@@ -793,8 +794,8 @@ export default function Page() {
                       <div
                         key={index}
                         className={`rounded-xl border p-4 md:p-5 ${isDarkMode
-                          ? "border-red-900 bg-red-950"
-                          : "border-red-200 bg-red-50"
+                          ? "border-error bg-red-950"
+                          : "border-error bg-red-50"
                           }`}
                       >
                         <h4
@@ -804,7 +805,7 @@ export default function Page() {
                           🚩 {sign.title}
                         </h4>
                         <p
-                          className={`text-base md:text-lg mb-3 md:mb-4 ${isDarkMode ? "text-gray-300" : "text-gray-700"
+                          className={`text-base md:text-lg mb-3 md:mb-4 ${isDarkMode ? "text-zinc-300" : "text-ink"
                             }`}
                         >
                           {sign.explanation}
@@ -814,7 +815,7 @@ export default function Page() {
                           <div
                             className={`rounded-lg p-3 text-base md:text-lg border italic ${isDarkMode
                               ? "border-yellow-800 bg-yellow-950 text-yellow-100"
-                              : "border-yellow-200 bg-yellow-100 text-gray-800"
+                              : "border-yellow-200 bg-yellow-100 text-ink"
                               }`}
                           >
                             &quot;{sign.excerpt}&quot;
@@ -827,8 +828,8 @@ export default function Page() {
                   {result.recommendedActions?.length > 0 && (
                     <div
                       className={`mt-5 rounded-xl border p-4 md:p-5 ${isDarkMode
-                        ? "border-blue-900 bg-blue-950"
-                        : "border-blue-200 bg-blue-50"
+                        ? "border-primary bg-blue-950"
+                        : "border-primary bg-surface-card"
                         }`}
                     >
                       <h3
@@ -886,14 +887,14 @@ export default function Page() {
                 {(result.riskLevel === "warning" || result.riskLevel === "danger") && (
                   <div
                     className={`rounded-xl border p-4 md:p-6 shadow-sm space-y-4 ${isDarkMode
-                      ? "border-gray-800 bg-gray-900"
-                      : "border-gray-200 bg-white"
+                      ? "border-zinc-800/80 bg-zinc-900"
+                      : "border-hairline bg-canvas"
                       }`}
                   >
                     <h2
                       className={`text-lg md:text-xl font-bold border-b pb-2 ${isDarkMode
-                        ? "border-gray-800 text-gray-100"
-                        : "border-gray-200 text-gray-850"
+                        ? "border-zinc-800/80 text-zinc-100"
+                        : "border-hairline text-gray-850"
                         }`}
                     >
                       Bác đã làm gì rồi?
@@ -920,8 +921,8 @@ export default function Page() {
                               isSelected
                                 ? scen.key === "none"
                                   ? isDarkMode ? "bg-green-950 border-green-700 text-green-300" : "bg-green-50 border-green-200 text-green-700"
-                                  : isDarkMode ? "bg-red-950 border-red-700 text-red-300" : "bg-red-50 border-red-200 text-red-700"
-                                : isDarkMode ? "border-gray-700 bg-gray-800 hover:bg-gray-700 text-gray-200 disabled:opacity-50" : "border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-750 disabled:opacity-50"
+                                  : isDarkMode ? "bg-red-950 border-error text-red-300" : "bg-red-50 border-error text-error"
+                                : isDarkMode ? "border-zinc-800/80 bg-zinc-900 hover:bg-zinc-800 text-zinc-100 disabled:opacity-50" : "border-hairline bg-canvas hover:bg-surface-soft text-gray-750 disabled:opacity-50"
                             }`}
                           >
                             {cleanLabel}
@@ -943,8 +944,8 @@ export default function Page() {
 
                     {responderLoading && (
                       <div className="mt-4 p-5 flex flex-col items-center justify-center space-y-3">
-                        <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-                        <p className={`text-base md:text-lg ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+                        <div className="w-8 h-8 border-4 border-error border-t-transparent rounded-full animate-spin"></div>
+                        <p className={`text-base md:text-lg ${isDarkMode ? "text-zinc-300" : "text-ink"}`}>
                           Đang liên hệ Người ứng cứu khẩn cấp...
                         </p>
                       </div>
@@ -953,8 +954,8 @@ export default function Page() {
                     {responderError && (
                       <div
                         className={`mt-4 p-4 rounded-xl text-base md:text-lg border ${isDarkMode
-                          ? "border-red-900 bg-red-950 text-red-200"
-                          : "border-red-200 bg-red-100 text-red-700"
+                          ? "border-error bg-red-950 text-red-200"
+                          : "border-error bg-error text-on-primary text-error"
                           }`}
                       >
                         ⚠️ {responderError}
@@ -964,12 +965,12 @@ export default function Page() {
                     {responderSteps && responderSteps.length > 0 && (
                       <div className="mt-4 space-y-4 animate-in fade-in duration-300">
                         <div className={`p-4 rounded-xl border-l-4 ${
-                          isDarkMode ? "bg-red-950/40 border-red-600" : "bg-red-50 border-red-500"
+                          isDarkMode ? "bg-red-950/40 border-error" : "bg-red-50 border-error"
                         }`}>
                           <h3 className={`text-base md:text-lg font-bold mb-1 ${isDarkMode ? "text-red-300" : "text-red-750"}`}>
                             🚨 Kịch bản ứng cứu khẩn cấp từ Người ứng cứu
                           </h3>
-                          <p className={`text-sm md:text-base ${isDarkMode ? "text-gray-300" : "text-gray-600"}`}>
+                          <p className={`text-sm md:text-base ${isDarkMode ? "text-zinc-300" : "text-ink"}`}>
                             Bác cần làm chính xác và nhanh chóng các bước dưới đây để giảm thiểu tối đa thiệt hại.
                           </p>
                         </div>
@@ -979,20 +980,20 @@ export default function Page() {
                             <div
                               key={step.stepNumber}
                               className={`p-4 md:p-5 rounded-xl border ${
-                                isDarkMode ? "border-gray-800 bg-gray-900/60" : "border-gray-200 bg-gray-50"
+                                isDarkMode ? "border-zinc-800/80 bg-gray-900/60" : "border-hairline bg-canvas"
                               }`}
                             >
                               <h4 className={`text-base md:text-lg font-bold flex gap-2 items-center mb-2 ${
-                                isDarkMode ? "text-gray-100" : "text-gray-800"
+                                isDarkMode ? "text-zinc-100" : "text-ink"
                               }`}>
-                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold shrink-0">
+                                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-on-dark text-xs font-bold shrink-0">
                                   {step.stepNumber}
                                 </span>
                                 {step.action}
                               </h4>
                               {step.quote && (
                                 <div className={`p-3 rounded-lg border italic text-sm md:text-base ${
-                                  isDarkMode ? "border-gray-700 bg-gray-950 text-gray-300" : "border-gray-350 bg-white text-gray-700"
+                                  isDarkMode ? "border-zinc-800/80 bg-zinc-900 text-zinc-300" : "border-hairline bg-canvas text-ink"
                                 }`}>
                                   &ldquo;{step.quote}&rdquo;
                                 </div>
@@ -1012,8 +1013,8 @@ export default function Page() {
                     disabled={isDownloading}
                     className={`flex items-center gap-2 cursor-pointer rounded-xl px-6 py-3 text-base md:text-lg font-bold transition-colors shadow-md disabled:opacity-70 ${
                       isDarkMode
-                        ? "bg-green-700 text-white hover:bg-green-600"
-                        : "bg-green-600 text-white hover:bg-green-700"
+                        ? "bg-green-700 text-zinc-100 hover:bg-green-600"
+                        : "bg-green-600 text-on-dark hover:bg-green-700"
                     }`}
                   >
                     <svg
@@ -1034,9 +1035,9 @@ export default function Page() {
                 </div>
 
                 {shareUrl && (
-                  <div className={`mt-8 p-6 border rounded-2xl flex flex-col items-center shadow-sm ${isDarkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
-                    <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}>Chia sẻ trực tuyến kết quả này</h3>
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4">
+                  <div className={`mt-8 p-6 border rounded-2xl flex flex-col items-center shadow-sm ${isDarkMode ? "bg-zinc-900 border-zinc-800/80" : "bg-canvas border-hairline"}`}>
+                    <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? "text-zinc-100" : "text-ink"}`}>Chia sẻ trực tuyến kết quả này</h3>
+                    <div className="bg-canvas p-4 rounded-xl shadow-sm border border-hairline mb-4">
                       <QRCodeSVG value={shareUrl} size={180} />
                     </div>
                     <div className="flex items-center gap-2 w-full max-w-sm">
@@ -1044,19 +1045,19 @@ export default function Page() {
                         type="text" 
                         readOnly 
                         value={shareUrl} 
-                        className={`flex-1 px-3 py-2.5 text-sm rounded-lg border focus:outline-none ${isDarkMode ? "bg-gray-900 border-gray-700 text-gray-200" : "bg-gray-50 border-gray-300 text-gray-800"}`}
+                        className={`flex-1 px-3 py-2.5 text-sm rounded-lg border focus:outline-none ${isDarkMode ? "bg-zinc-900 border-zinc-800/80 text-zinc-100" : "bg-canvas border-hairline text-ink"}`}
                       />
                       <button 
                         onClick={() => {
                           navigator.clipboard.writeText(shareUrl);
                           alert("Đã sao chép đường dẫn!");
                         }}
-                        className={`px-4 py-2.5 text-sm font-bold rounded-lg transition-colors ${isDarkMode ? "bg-blue-600 hover:bg-blue-500 text-white" : "bg-blue-600 hover:bg-blue-700 text-white"}`}
+                        className={`px-4 py-2.5 text-sm font-bold rounded-lg transition-colors ${isDarkMode ? "bg-primary hover:bg-primary-active text-zinc-100" : "bg-primary hover:bg-primary-active text-on-dark"}`}
                       >
                         Copy
                       </button>
                     </div>
-                    <p className={`mt-3 text-sm text-center ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+                    <p className={`mt-3 text-sm text-center ${isDarkMode ? "text-zinc-400" : "text-muted"}`}>
                       Người thân của bạn có thể quét mã QR này hoặc truy cập đường dẫn trên để xem kết quả phân tích. (Tự động xoá sau 24 giờ)
                     </p>
                   </div>
@@ -1074,8 +1075,8 @@ export default function Page() {
 
       <footer
         className={`shrink-0 w-full border-t px-5 md:px-10 py-5 text-center text-sm md:text-base font-medium transition-colors ${isDarkMode
-          ? "border-gray-800 bg-gray-900 text-gray-400"
-          : "border-gray-200 bg-gray-50 text-gray-600"
+          ? "border-zinc-800/80 bg-zinc-900 text-zinc-400"
+          : "border-hairline bg-canvas text-ink"
           }`}
       >
         <div className="flex flex-col gap-2 items-center">

@@ -54,13 +54,13 @@ export default function PracticePage() {
   return (
     <div
       className={`flex flex-col min-h-screen font-sans transition-colors ${
-        isDarkMode ? "bg-gray-950 text-gray-100" : "bg-gray-50 text-black"
+        isDarkMode ? "dark bg-zinc-900 text-zinc-100" : "bg-canvas text-ink"
       }`}
       style={{ colorScheme: isDarkMode ? "dark" : "light" }}
     >
       <header
         className={`flex items-center justify-between px-5 py-4 border-b shrink-0 relative z-10 transition-colors ${
-          isDarkMode ? "border-gray-800 bg-gray-900" : "border-gray-200 bg-white"
+          isDarkMode ? "border-zinc-800/80 bg-zinc-900" : "border-hairline bg-canvas"
         }`}
       >
         <div className="flex items-center gap-4">
@@ -68,8 +68,8 @@ export default function PracticePage() {
             href="/"
             className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors ${
               isDarkMode
-                ? "text-gray-300 hover:bg-gray-800"
-                : "text-gray-600 hover:bg-gray-100"
+                ? "text-zinc-300 hover:bg-zinc-800"
+                : "text-ink hover:bg-surface-soft"
             }`}
           >
             <FaArrowLeft />
@@ -88,8 +88,8 @@ export default function PracticePage() {
             onClick={() => setIsDarkMode((current) => !current)}
             className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition-colors ${
               isDarkMode
-                ? "border-gray-700 bg-gray-800 text-yellow-300 hover:bg-gray-700"
-                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                ? "border-zinc-800/80 bg-zinc-900 text-yellow-300 hover:bg-zinc-800"
+                : "border-hairline bg-canvas text-ink hover:bg-surface-soft"
             }`}
           >
             {isDarkMode ? <FaSun className="h-4 w-4" /> : <FaMoon className="h-4 w-4" />}
@@ -101,29 +101,29 @@ export default function PracticePage() {
         {!isFinished ? (
           <div className="flex-1 flex flex-col">
             <div className="mb-6 flex justify-between items-center">
-              <span className={`text-lg font-semibold ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+              <span className={`text-lg font-semibold ${isDarkMode ? "text-zinc-400" : "text-muted"}`}>
                 Câu {currentIndex + 1} / {PRACTICE_SCENARIOS.length}
               </span>
-              <span className={`text-lg font-semibold ${isDarkMode ? "text-blue-400" : "text-blue-600"}`}>
+              <span className={`text-lg font-semibold ${isDarkMode ? "text-blue-400" : "text-primary"}`}>
                 Điểm: {score}
               </span>
             </div>
 
-            <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2 mb-8">
+            <div className="w-full bg-surface-soft dark:bg-gray-800 rounded-full h-2 mb-8">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                className="bg-primary h-2 rounded-full transition-all duration-300"
                 style={{ width: `${((currentIndex + 1) / PRACTICE_SCENARIOS.length) * 100}%` }}
               ></div>
             </div>
 
             <div className={`rounded-2xl border p-6 md:p-8 mb-8 shadow-sm flex-1 flex flex-col justify-center ${
-              isDarkMode ? "border-gray-800 bg-gray-900" : "border-gray-200 bg-white"
+              isDarkMode ? "border-zinc-800/80 bg-zinc-900" : "border-hairline bg-canvas"
             }`}>
-              <h2 className="text-sm font-bold uppercase tracking-wider mb-4 text-gray-500 dark:text-gray-400">
+              <h2 className="text-sm font-bold uppercase tracking-wider mb-4 text-muted dark:text-gray-400">
                 Tin nhắn mẫu:
               </h2>
               <p className={`text-xl md:text-2xl leading-relaxed font-medium mb-8 ${
-                isDarkMode ? "text-gray-100" : "text-gray-900"
+                isDarkMode ? "text-zinc-100" : "text-ink"
               }`}>
                 &quot;{currentScenario.content}&quot;
               </p>
@@ -144,8 +144,8 @@ export default function PracticePage() {
                     onClick={() => handleAnswer(true)}
                     className={`py-4 px-6 rounded-xl text-lg font-bold border-2 transition-all cursor-pointer ${
                       isDarkMode
-                        ? "border-red-800 text-red-400 hover:bg-red-950/50 hover:border-red-600"
-                        : "border-red-200 text-red-700 hover:bg-red-50 hover:border-red-400"
+                        ? "border-error text-red-400 hover:bg-red-950/50 hover:border-red-600"
+                        : "border-error text-error hover:bg-red-50 hover:border-red-400"
                     }`}
                   >
                     🚩 Lừa đảo
@@ -156,7 +156,7 @@ export default function PracticePage() {
                   <div className={`p-5 rounded-xl border-2 mb-6 ${
                     userChoice === currentScenario.isScam
                       ? isDarkMode ? "bg-green-950 border-green-800" : "bg-green-50 border-green-200"
-                      : isDarkMode ? "bg-red-950 border-red-800" : "bg-red-50 border-red-200"
+                      : isDarkMode ? "bg-red-950 border-error" : "bg-red-50 border-error"
                   }`}>
                     <div className="flex items-center gap-3 mb-3">
                       <span className="text-2xl">
@@ -165,19 +165,19 @@ export default function PracticePage() {
                       <h3 className={`text-xl font-bold ${
                         userChoice === currentScenario.isScam
                           ? isDarkMode ? "text-green-400" : "text-green-700"
-                          : isDarkMode ? "text-red-400" : "text-red-700"
+                          : isDarkMode ? "text-red-400" : "text-error"
                       }`}>
                         {userChoice === currentScenario.isScam ? "Chính xác!" : "Sai rồi bác ơi!"}
                       </h3>
                     </div>
                     
                     <div className="flex gap-4 items-start mt-4 pt-4 border-t border-opacity-20 border-current">
-                      <Image src={ThamTu} alt="Tham Tu" width={50} height={50} className="rounded-full bg-gray-100 dark:bg-gray-800 p-1 shrink-0" />
+                      <Image src={ThamTu} alt="Tham Tu" width={50} height={50} className="rounded-full bg-canvas dark:bg-gray-800 p-1 shrink-0" />
                       <div>
-                        <p className={`font-semibold mb-1 ${isDarkMode ? "text-gray-300" : "text-gray-800"}`}>
+                        <p className={`font-semibold mb-1 ${isDarkMode ? "text-zinc-300" : "text-ink"}`}>
                           Đáp án đúng: <span className="uppercase">{currentScenario.isScam ? "Lừa đảo" : "An toàn"}</span>
                         </p>
-                        <p className={`text-lg ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+                        <p className={`text-lg ${isDarkMode ? "text-zinc-300" : "text-ink"}`}>
                           {currentScenario.explanation}
                         </p>
                       </div>
@@ -186,7 +186,7 @@ export default function PracticePage() {
 
                   <button
                     onClick={handleNext}
-                    className="w-full py-4 rounded-xl text-xl font-bold bg-blue-600 text-white hover:bg-blue-500 transition-colors shadow-md cursor-pointer"
+                    className="w-full py-4 rounded-xl text-xl font-bold bg-primary text-on-dark hover:bg-primary-active transition-colors shadow-md cursor-pointer"
                   >
                     {currentIndex < PRACTICE_SCENARIOS.length - 1 ? "Câu tiếp theo ➡️" : "Xem kết quả 🏆"}
                   </button>
@@ -197,7 +197,7 @@ export default function PracticePage() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center animate-in slide-in-from-bottom-8 duration-500 py-10">
             <div className={`w-full max-w-2xl rounded-2xl border p-8 md:p-12 text-center shadow-lg ${
-              isDarkMode ? "border-gray-800 bg-gray-900" : "border-gray-200 bg-white"
+              isDarkMode ? "border-zinc-800/80 bg-zinc-900" : "border-hairline bg-canvas"
             }`}>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Kết quả luyện tập</h2>
               
@@ -207,21 +207,21 @@ export default function PracticePage() {
                     ? "border-green-500 text-green-500" 
                     : score >= 5 
                       ? "border-yellow-500 text-yellow-500" 
-                      : "border-red-500 text-red-500"
+                      : "border-error text-red-500"
                 }`}>
                   {score}/{PRACTICE_SCENARIOS.length}
                 </div>
               </div>
 
               <div className={`mt-8 p-6 rounded-xl border flex flex-col sm:flex-row items-center gap-6 text-left ${
-                isDarkMode ? "bg-gray-800 border-gray-700" : "bg-blue-50 border-blue-100"
+                isDarkMode ? "bg-zinc-900 border-zinc-800/80" : "bg-surface-card border-primary"
               }`}>
                 <Image src={TamLy} alt="Tam Ly" width={80} height={80} className="shrink-0" />
                 <div>
-                  <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? "text-gray-100" : "text-gray-900"}`}>
+                  <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? "text-zinc-100" : "text-ink"}`}>
                     Cô Tâm Lý nhắn gửi:
                   </h3>
-                  <p className={`text-lg ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+                  <p className={`text-lg ${isDarkMode ? "text-zinc-300" : "text-ink"}`}>
                     {score >= 8 
                       ? "Bác giỏi quá! Mắt nhìn tinh tường thế này thì khó có kẻ gian nào lừa được bác. Cứ giữ vững tinh thần cảnh giác này nhé!" 
                       : score >= 5 
@@ -236,15 +236,15 @@ export default function PracticePage() {
                   onClick={resetPractice}
                   className={`py-4 px-8 rounded-xl text-lg font-bold border-2 transition-colors cursor-pointer ${
                     isDarkMode
-                      ? "border-gray-700 text-gray-300 hover:bg-gray-800"
-                      : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                      ? "border-zinc-800/80 text-zinc-300 hover:bg-zinc-800"
+                      : "border-hairline text-ink hover:bg-surface-soft"
                   }`}
                 >
                   🔄 Chơi lại
                 </button>
                 <Link
                   href="/"
-                  className="py-4 px-8 rounded-xl text-lg font-bold bg-blue-600 text-white hover:bg-blue-500 transition-colors shadow-md text-center"
+                  className="py-4 px-8 rounded-xl text-lg font-bold bg-primary text-on-dark hover:bg-primary-active transition-colors shadow-md text-center"
                 >
                   🏠 Về Trang chủ
                 </Link>
