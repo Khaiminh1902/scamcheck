@@ -54,13 +54,13 @@ export default function PracticePage() {
   return (
     <div
       className={`flex flex-col min-h-screen font-sans transition-colors ${
-        isDarkMode ? "dark bg-zinc-900 text-zinc-100" : "bg-canvas text-ink"
+        isDarkMode ? "dark bg-[#2b2a27] text-[#e6e4df]" : "bg-canvas text-ink"
       }`}
       style={{ colorScheme: isDarkMode ? "dark" : "light" }}
     >
       <header
         className={`flex items-center justify-between px-5 py-4 border-b shrink-0 relative z-10 transition-colors ${
-          isDarkMode ? "border-zinc-800/80 bg-zinc-900" : "border-hairline bg-canvas"
+          isDarkMode ? "border-[#3e3d38] bg-[#2b2a27]" : "border-hairline bg-canvas"
         }`}
       >
         <div className="flex items-center gap-4">
@@ -68,19 +68,19 @@ export default function PracticePage() {
             href="/"
             className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors ${
               isDarkMode
-                ? "text-zinc-300 hover:bg-zinc-800"
+                ? "text-[#a3a199] hover:bg-[#383733]"
                 : "text-ink hover:bg-surface-soft"
             }`}
           >
             <FaArrowLeft />
             <span className="hidden sm:inline">Quay lại Trang chủ</span>
           </Link>
-          <h1 className="text-xl sm:text-2xl font-bold hidden sm:block">
+          <h1 className={`text-xl sm:text-2xl font-bold hidden sm:block ${isDarkMode ? "text-[#e6e4df]" : "text-ink"}`}>
             Chế độ luyện tập
           </h1>
         </div>
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold sm:hidden">Luyện tập</h1>
+          <h1 className={`text-xl font-bold sm:hidden ${isDarkMode ? "text-[#e6e4df]" : "text-ink"}`}>Luyện tập</h1>
           <button
             type="button"
             aria-label={themeToggleLabel}
@@ -88,7 +88,7 @@ export default function PracticePage() {
             onClick={() => setIsDarkMode((current) => !current)}
             className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition-colors ${
               isDarkMode
-                ? "border-zinc-800/80 bg-zinc-900 text-yellow-300 hover:bg-zinc-800"
+                ? "border-[#3e3d38] bg-[#2b2a27] text-yellow-300 hover:bg-[#383733]"
                 : "border-hairline bg-canvas text-ink hover:bg-surface-soft"
             }`}
           >
@@ -101,7 +101,7 @@ export default function PracticePage() {
         {!isFinished ? (
           <div className="flex-1 flex flex-col">
             <div className="mb-6 flex justify-between items-center">
-              <span className={`text-lg font-semibold ${isDarkMode ? "text-zinc-400" : "text-muted"}`}>
+              <span className={`text-lg font-semibold ${isDarkMode ? "text-[#a3a199]" : "text-muted"}`}>
                 Câu {currentIndex + 1} / {PRACTICE_SCENARIOS.length}
               </span>
               <span className={`text-lg font-semibold ${isDarkMode ? "text-blue-400" : "text-primary"}`}>
@@ -117,13 +117,13 @@ export default function PracticePage() {
             </div>
 
             <div className={`rounded-2xl border p-6 md:p-8 mb-8 shadow-sm flex-1 flex flex-col justify-center ${
-              isDarkMode ? "border-zinc-800/80 bg-zinc-900" : "border-hairline bg-canvas"
+              isDarkMode ? "border-[#3e3d38] bg-[#2b2a27]" : "border-hairline bg-canvas"
             }`}>
               <h2 className="text-sm font-bold uppercase tracking-wider mb-4 text-muted dark:text-gray-400">
                 Tin nhắn mẫu:
               </h2>
               <p className={`text-xl md:text-2xl leading-relaxed font-medium mb-8 ${
-                isDarkMode ? "text-zinc-100" : "text-ink"
+                isDarkMode ? "text-[#e6e4df]" : "text-ink"
               }`}>
                 &quot;{currentScenario.content}&quot;
               </p>
@@ -174,10 +174,10 @@ export default function PracticePage() {
                     <div className="flex gap-4 items-start mt-4 pt-4 border-t border-opacity-20 border-current">
                       <Image src={ThamTu} alt="Tham Tu" width={50} height={50} className="rounded-full bg-canvas dark:bg-gray-800 p-1 shrink-0" />
                       <div>
-                        <p className={`font-semibold mb-1 ${isDarkMode ? "text-zinc-300" : "text-ink"}`}>
+                        <p className={`font-semibold mb-1 ${isDarkMode ? "text-[#a3a199]" : "text-ink"}`}>
                           Đáp án đúng: <span className="uppercase">{currentScenario.isScam ? "Lừa đảo" : "An toàn"}</span>
                         </p>
-                        <p className={`text-lg ${isDarkMode ? "text-zinc-300" : "text-ink"}`}>
+                        <p className={`text-lg ${isDarkMode ? "text-[#a3a199]" : "text-ink"}`}>
                           {currentScenario.explanation}
                         </p>
                       </div>
@@ -197,7 +197,7 @@ export default function PracticePage() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center animate-in slide-in-from-bottom-8 duration-500 py-10">
             <div className={`w-full max-w-2xl rounded-2xl border p-8 md:p-12 text-center shadow-lg ${
-              isDarkMode ? "border-zinc-800/80 bg-zinc-900" : "border-hairline bg-canvas"
+              isDarkMode ? "border-[#3e3d38] bg-[#2b2a27]" : "border-hairline bg-canvas"
             }`}>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Kết quả luyện tập</h2>
               
@@ -214,14 +214,14 @@ export default function PracticePage() {
               </div>
 
               <div className={`mt-8 p-6 rounded-xl border flex flex-col sm:flex-row items-center gap-6 text-left ${
-                isDarkMode ? "bg-zinc-900 border-zinc-800/80" : "bg-surface-card border-primary"
+                isDarkMode ? "bg-[#2b2a27] border-[#3e3d38]" : "bg-surface-card border-primary"
               }`}>
                 <Image src={TamLy} alt="Tam Ly" width={80} height={80} className="shrink-0" />
                 <div>
-                  <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? "text-zinc-100" : "text-ink"}`}>
+                  <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? "text-[#e6e4df]" : "text-ink"}`}>
                     Cô Tâm Lý nhắn gửi:
                   </h3>
-                  <p className={`text-lg ${isDarkMode ? "text-zinc-300" : "text-ink"}`}>
+                  <p className={`text-lg ${isDarkMode ? "text-[#a3a199]" : "text-ink"}`}>
                     {score >= 8 
                       ? "Bác giỏi quá! Mắt nhìn tinh tường thế này thì khó có kẻ gian nào lừa được bác. Cứ giữ vững tinh thần cảnh giác này nhé!" 
                       : score >= 5 
@@ -236,7 +236,7 @@ export default function PracticePage() {
                   onClick={resetPractice}
                   className={`py-4 px-8 rounded-xl text-lg font-bold border-2 transition-colors cursor-pointer ${
                     isDarkMode
-                      ? "border-zinc-800/80 text-zinc-300 hover:bg-zinc-800"
+                      ? "border-[#3e3d38] text-[#a3a199] hover:bg-[#383733]"
                       : "border-hairline text-ink hover:bg-surface-soft"
                   }`}
                 >
