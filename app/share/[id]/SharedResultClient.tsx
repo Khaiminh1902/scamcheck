@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FaMoon, FaSun } from "react-icons/fa6";
-import RiskBadge from "@/app/components/level";
+import RiskBadge from "@/app mn/components/level";
 import Image from "next/image";
 import ThamTu from "../../../public/tt.png";
 import TamLy from "../../../public/tl.png";
