@@ -20,13 +20,23 @@ npm install
 ```
 
 ### 3. Cấu hình biến môi trường (Environment Variables)
-Ứng dụng gọi trực tiếp API của Google Gemini để phân tích tin nhắn, vì vậy bạn cần cấu hình khóa API:
+Ứng dụng gọi trực tiếp API của Google Gemini để phân tích tin nhắn và sử dụng Vercel KV để lưu trữ các đường link chia sẻ kết quả:
+
 1. Tạo một file tên là `.env.local` ở thư mục gốc của dự án.
-2. Thêm khóa API Gemini của bạn vào file với định dạng sau:
+2. Cấu hình các biến môi trường sau:
 ```env
+# API Key của Google Gemini (Bắt buộc)
 GEMINI_API_KEY=your_gemini_api_key_here
+
+# Cấu hình Vercel KV/Redis (Không bắt buộc ở local)
+# Nếu không cấu hình dưới local, ứng dụng sẽ tự động fallback sang lưu trữ bằng RAM (In-memory cache) để phục vụ việc test nhanh tính năng chia sẻ.
+KV_URL=your_kv_url_here
+KV_REST_API_URL=your_kv_rest_api_url_here
+KV_REST_API_TOKEN=your_kv_rest_api_token_here
+KV_REST_API_READ_ONLY_TOKEN=your_kv_rest_api_read_only_token_here
 ```
-*(Thay `your_gemini_api_key_here` bằng khóa API Gemini thực tế do ban tổ chức/mentor cấp hoặc tự khởi tạo từ Google AI Studio).*
+*(Thay `your_gemini_api_key_here` bằng khóa API Gemini thực tế do ban tổ chức/mentor cấp hoặc tự khởi tạo từ Google AI Studio. Nếu muốn sử dụng cơ sở dữ liệu thật khi phát triển ở local, bạn hãy chạy lệnh `vercel env pull .env.local` sau khi đã liên kết dự án với Vercel).*
+
 
 ### 4. Khởi chạy Server phát triển (Development Server)
 Chạy lệnh sau để khởi động môi trường local dev:
