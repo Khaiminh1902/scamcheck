@@ -163,6 +163,13 @@ export default function Page() {
     window.dispatchEvent(new Event("scamcheck-history"));
   }
 
+  function clearHistory() {
+    if (confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử?")) {
+      localStorage.removeItem(HISTORY_STORAGE_KEY);
+      window.dispatchEvent(new Event("scamcheck-history"));
+    }
+  }
+
   async function handleCheck() {
     setErrorMsg("");
     setResult(null);
@@ -478,12 +485,26 @@ export default function Page() {
             </Link>
 
             <div className="flex min-h-0 flex-1 flex-col">
-              <h2
-                className={`mb-4 px-1 text-base font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-400" : "text-gray-600"
-                  }`}
-              >
-                Lịch sử tìm kiếm ({history.length})
-              </h2>
+              <div className="flex items-center justify-between mb-4 px-1">
+                <h2
+                  className={`text-base font-semibold uppercase tracking-wider ${isDarkMode ? "text-gray-400" : "text-gray-600"
+                    }`}
+                >
+                  Lịch sử tìm kiếm ({history.length})
+                </h2>
+                {history.length > 0 && (
+                  <button
+                    onClick={clearHistory}
+                    className={`cursor-pointer text-sm px-2 py-1 rounded border transition-colors ${
+                      isDarkMode
+                        ? "border-red-900 text-red-400 hover:bg-red-950/50 hover:text-red-300"
+                        : "border-red-200 text-red-600 hover:bg-red-50"
+                    }`}
+                  >
+                    Xóa tất cả
+                  </button>
+                )}
+              </div>
 
               <div
                 className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-4 -mr-4"
