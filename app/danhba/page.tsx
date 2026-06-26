@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { FaArrowLeft, FaMoon, FaSun, FaPhone, FaCopy, FaCheck } from "react-icons/fa6";
 import hotlines from "../data/hotlines.json";
+import { useThemeMode } from "../components/useThemeMode";
 
 type HotlineItem = {
   name: string;
@@ -12,13 +13,9 @@ type HotlineItem = {
 };
 
 export default function HotlinePage() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode, setIsDarkMode, themeToggleLabel } = useThemeMode();
   const [filterType, setFilterType] = useState<"all" | "authority_police" | "bank">("all");
   const [copiedPhone, setCopiedPhone] = useState<string | null>(null);
-
-  const themeToggleLabel = isDarkMode
-    ? "Chuyển sang giao diện sáng"
-    : "Chuyển sang giao diện tối";
 
   const handleCopy = (phone: string) => {
     navigator.clipboard.writeText(phone);
@@ -37,13 +34,13 @@ export default function HotlinePage() {
   return (
     <div
       className={`flex flex-col min-h-screen font-sans transition-colors ${
-        isDarkMode ? "bg-gray-950 text-gray-100" : "bg-gray-50 text-black"
+        isDarkMode ? "bg-dark-elevated text-dark-text" : "bg-canvas text-ink"
       }`}
       style={{ colorScheme: isDarkMode ? "dark" : "light" }}
     >
       <header
         className={`flex items-center justify-between px-5 py-4 border-b shrink-0 relative z-10 transition-colors ${
-          isDarkMode ? "border-gray-800 bg-gray-900" : "border-gray-200 bg-white"
+          isDarkMode ? "border-dark-border bg-dark-elevated" : "border-hairline bg-surface-card"
         }`}
       >
         <div className="flex items-center gap-4">
@@ -52,7 +49,7 @@ export default function HotlinePage() {
             className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors ${
               isDarkMode
                 ? "text-gray-300 hover:bg-gray-800"
-                : "text-gray-600 hover:bg-gray-100"
+                : "text-muted hover:bg-surface-soft"
             }`}
           >
             <FaArrowLeft />
@@ -71,8 +68,8 @@ export default function HotlinePage() {
             onClick={() => setIsDarkMode((current) => !current)}
             className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition-colors ${
               isDarkMode
-                ? "border-gray-700 bg-gray-800 text-yellow-300 hover:bg-gray-700"
-                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                ? "border-dark-border bg-dark-soft text-yellow-300 hover:bg-zinc-700"
+                : "border-hairline bg-surface-card text-ink hover:bg-surface-soft"
             }`}
           >
             {isDarkMode ? <FaSun className="h-4 w-4" /> : <FaMoon className="h-4 w-4" />}
@@ -82,7 +79,7 @@ export default function HotlinePage() {
 
       <main className="flex-1 px-4 py-6 md:px-10 md:py-8 max-w-5xl mx-auto w-full">
         <div className="mb-6 md:mb-8">
-          <h2 className={`text-lg md:text-xl font-bold mb-4 ${isDarkMode ? "text-gray-200" : "text-gray-800"}`}>
+          <h2 className={`text-lg md:text-xl font-bold mb-4 ${isDarkMode ? "text-dark-text" : "text-ink"}`}>
             Phân loại theo nhóm
           </h2>
           <div className="flex flex-wrap gap-2 md:gap-3">
@@ -92,8 +89,8 @@ export default function HotlinePage() {
                 filterType === "all"
                   ? "bg-blue-600 text-white"
                   : isDarkMode
-                  ? "bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700"
-                  : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                  ? "bg-dark-soft text-dark-text-muted hover:bg-zinc-700 border border-dark-border"
+                  : "bg-surface-card text-muted hover:bg-surface-soft border border-hairline"
               }`}
             >
               Tất cả
@@ -104,8 +101,8 @@ export default function HotlinePage() {
                 filterType === "authority_police"
                   ? "bg-blue-600 text-white"
                   : isDarkMode
-                  ? "bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700"
-                  : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                  ? "bg-dark-soft text-dark-text-muted hover:bg-zinc-700 border border-dark-border"
+                  : "bg-surface-card text-muted hover:bg-surface-soft border border-hairline"
               }`}
             >
               Cơ quan & Công an
@@ -116,8 +113,8 @@ export default function HotlinePage() {
                 filterType === "bank"
                   ? "bg-blue-600 text-white"
                   : isDarkMode
-                  ? "bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700"
-                  : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                  ? "bg-dark-soft text-dark-text-muted hover:bg-zinc-700 border border-dark-border"
+                  : "bg-surface-card text-muted hover:bg-surface-soft border border-hairline"
               }`}
             >
               Ngân hàng
@@ -143,8 +140,8 @@ export default function HotlinePage() {
                 key={index}
                 className={`p-5 rounded-2xl border transition-all flex flex-col justify-between ${
                   isDarkMode
-                    ? "border-gray-800 bg-gray-900 hover:border-gray-750"
-                    : "border-gray-200 bg-white hover:border-gray-300 shadow-sm"
+                    ? "border-dark-border bg-dark-elevated hover:border-zinc-500"
+                    : "border-hairline bg-surface-card hover:border-gray-300 shadow-sm"
                 }`}
               >
                 <div>
@@ -167,8 +164,8 @@ export default function HotlinePage() {
                       onClick={() => handleCopy(item.phone)}
                       className={`p-2.5 rounded-xl border transition-colors cursor-pointer ${
                         isDarkMode
-                          ? "border-gray-700 hover:bg-gray-800 text-gray-400 hover:text-gray-200"
-                          : "border-gray-200 hover:bg-gray-100 text-gray-500 hover:text-gray-850"
+                        ? "border-dark-border hover:bg-dark-soft text-dark-text-muted hover:text-dark-text"
+                        : "border-hairline hover:bg-surface-soft text-muted hover:text-ink"
                       }`}
                       title="Sao chép số điện thoại"
                     >

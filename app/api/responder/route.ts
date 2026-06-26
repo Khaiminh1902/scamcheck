@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs/promises";
 import path from "path";
+import { ResponderStep } from "@/types/detective";
 
 type GeminiGenerateResponse = {
   candidates?: {
@@ -17,19 +18,27 @@ const responderResponseSchema = {
   properties: {
     steps: {
       type: "ARRAY",
-      description: "Danh sách các bước hành động được đánh số. Tuyệt đối không chứa dấu chấm than (!) ở bất kỳ phần nào.",
+      description:
+        "Danh sách các bước hành động được đánh số. Tuyệt đối không chứa dấu chấm than (!) ở bất kỳ phần nào.",
       items: {
         type: "OBJECT",
         properties: {
           stepNumber: { type: "INTEGER" },
-          action: { type: "STRING", description: "Hành động cụ thể cần làm ngay lập tức" },
-          quote: { type: "STRING", description: "Câu nói mẫu, lời thoại mẫu để người dùng đọc khi thực hiện hành động (ví dụ khi gọi điện thoại)" }
+          action: {
+            type: "STRING",
+            description: "Hành động cụ thể cần làm ngay lập tức",
+          },
+          quote: {
+            type: "STRING",
+            description:
+              "Câu nói mẫu, lời thoại mẫu để người dùng đọc khi thực hiện hành động (ví dụ khi gọi điện thoại)",
+          },
         },
-        required: ["stepNumber", "action", "quote"]
-      }
-    }
+        required: ["stepNumber", "action", "quote"],
+      },
+    },
   },
-  required: ["steps"]
+  required: ["steps"],
 };
 
 async function callGemini(prompt: string) {
@@ -58,7 +67,7 @@ async function callGemini(prompt: string) {
           maxOutputTokens: 8192,
         },
       }),
-    }
+    },
   );
 
   if (!response.ok) {
@@ -72,24 +81,33 @@ async function callGemini(prompt: string) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { messageText, scenario } = body as { messageText: string; scenario: "link" | "money" | "otp" };
+    const { messageText, scenario } = body as {
+      messageText: string;
+      scenario: "link" | "money" | "otp";
+    };
 
     if (!messageText || !scenario) {
       return NextResponse.json(
         { error: "Thiếu dữ liệu đầu vào." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // Đọc danh bạ hotline chính thức từ file
-    const hotlinesPath = path.join(process.cwd(), "app", "data", "hotlines.json");
+    const hotlinesPath = path.join(
+      process.cwd(),
+      "app",
+      "data",
+      "hotlines.json",
+    );
     const hotlinesData = await fs.readFile(hotlinesPath, "utf-8");
-    const hotlines = JSON.parse(hotlinesData);
+    const hotlines = JSON.parse(hotlinesData) as unknown;
 
-    const scenarioText = 
-      scenario === "link" ? "Đã bấm vào đường dẫn lạ" :
-      scenario === "money" ? "Đã chuyển khoản tiền cho kẻ lừa đảo" :
-      "Đã cung cấp mã xác thực OTP / thông tin bảo mật";
+    const scenarioText =
+      scenario === "link"
+        ? "Đã bấm vào đường dẫn lạ"
+        : scenario === "money"
+          ? "Đã chuyển khoản tiền cho kẻ lừa đảo"
+          : "Đã cung cấp mã xác thực OTP / thông tin bảo mật";
 
     const prompt = `
 Mày là "Người ứng cứu" - một chuyên gia hỗ trợ khẩn cấp cho người dùng bị lừa đảo công nghệ cao.
@@ -113,43 +131,46 @@ Trả về kết quả dưới dạng JSON theo đúng schema được yêu cầ
 `;
 
     const text = await callGemini(prompt);
-    
-    // Parse để lọc sạch và kiểm chứng không có dấu chấm than trong các trường văn bản
+
     let cleanText = text.trim();
     if (cleanText.startsWith("```json")) cleanText = cleanText.substring(7);
     else if (cleanText.startsWith("```")) cleanText = cleanText.substring(3);
-    if (cleanText.endsWith("```")) cleanText = cleanText.substring(0, cleanText.length - 3);
+    if (cleanText.endsWith("```")) {
+      cleanText = cleanText.substring(0, cleanText.length - 3);
+    }
     cleanText = cleanText.trim();
-    // Thay thế các ký tự xuống dòng thực tế (gây lỗi Unterminated string) bằng khoảng trắng
     cleanText = cleanText.replace(/[\n\r\t]/g, " ");
 
-    let parsedResult;
+    let parsedResult: { steps?: ResponderStep[] };
     try {
-      parsedResult = JSON.parse(cleanText);
+      parsedResult = JSON.parse(cleanText) as { steps?: ResponderStep[] };
     } catch (parseErr) {
       console.error("Lỗi parse JSON Responder:", parseErr, "Raw text:", text);
       return NextResponse.json(
         { error: "AI trả về dữ liệu không hợp lệ. Vui lòng thử lại." },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     if (parsedResult && Array.isArray(parsedResult.steps)) {
-      parsedResult.steps = parsedResult.steps.map((step: { stepNumber: number; action: string; quote: string }) => {
-        return {
-          stepNumber: step.stepNumber,
-          action: (step.action || "").replace(/!/g, "."),
-          quote: (step.quote || "").replace(/!/g, ".")
-        };
-      });
+      parsedResult.steps = parsedResult.steps.map((step) => ({
+        stepNumber: step.stepNumber,
+        action: (step.action || "").replace(/!/g, "."),
+        quote: (step.quote || "").replace(/!/g, "."),
+      }));
     }
 
     return NextResponse.json(parsedResult);
   } catch (error: unknown) {
     console.error("Lỗi Người ứng cứu:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Lỗi hệ thống khi gọi Người ứng cứu" },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Lỗi hệ thống khi gọi Người ứng cứu",
+      },
+      { status: 500 },
     );
   }
 }

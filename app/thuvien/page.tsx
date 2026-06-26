@@ -2,17 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { FaArrowLeft, FaMoon, FaSun } from "react-icons/fa6";
+import { FaArrowLeft, FaChevronDown, FaMoon, FaSun } from "react-icons/fa6";
 import { SCAM_LIBRARY, SCAM_CATEGORIES, ScamCategory } from "../data/scam-library";
+import { useThemeMode } from "../components/useThemeMode";
 
 export default function LibraryPage() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode, setIsDarkMode, themeToggleLabel } = useThemeMode();
   const [selectedCategory, setSelectedCategory] = useState<ScamCategory | "all">("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const themeToggleLabel = isDarkMode
-    ? "Chuyển sang giao diện sáng"
-    : "Chuyển sang giao diện tối";
 
   const filteredLibrary =
     selectedCategory === "all"
@@ -22,13 +19,13 @@ export default function LibraryPage() {
   return (
     <div
       className={`flex flex-col min-h-screen font-sans transition-colors ${
-        isDarkMode ? "dark bg-[#2b2a27] text-[#e6e4df]" : "bg-canvas text-ink"
+        isDarkMode ? "dark bg-dark-elevated text-dark-text" : "bg-canvas text-ink"
       }`}
       style={{ colorScheme: isDarkMode ? "dark" : "light" }}
     >
       <header
         className={`flex items-center justify-between px-5 py-4 border-b shrink-0 relative z-10 transition-colors ${
-          isDarkMode ? "border-[#3e3d38] bg-[#2b2a27]" : "border-hairline bg-canvas"
+          isDarkMode ? "border-dark-border bg-dark-elevated" : "border-hairline bg-surface-card"
         }`}
       >
         <div className="flex items-center gap-4">
@@ -36,19 +33,19 @@ export default function LibraryPage() {
             href="/"
             className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors ${
               isDarkMode
-                ? "text-[#a3a199] hover:bg-[#383733]"
+                ? "text-dark-text-muted hover:bg-dark-soft"
                 : "text-ink hover:bg-surface-soft"
             }`}
           >
             <FaArrowLeft />
             <span className="hidden sm:inline">Quay lại Trang chủ</span>
           </Link>
-          <h1 className={`text-xl sm:text-2xl font-bold hidden sm:block ${isDarkMode ? "text-[#e6e4df]" : "text-ink"}`}>
+          <h1 className={`text-xl sm:text-2xl font-bold hidden sm:block ${isDarkMode ? "text-dark-text" : "text-ink"}`}>
             Thư viện lừa đảo
           </h1>
         </div>
         <div className="flex items-center gap-3">
-          <h1 className={`text-xl font-bold sm:hidden ${isDarkMode ? "text-[#e6e4df]" : "text-ink"}`}>Thư viện lừa đảo</h1>
+          <h1 className={`text-xl font-bold sm:hidden ${isDarkMode ? "text-dark-text" : "text-ink"}`}>Thư viện lừa đảo</h1>
           <button
             type="button"
             aria-label={themeToggleLabel}
@@ -56,8 +53,8 @@ export default function LibraryPage() {
             onClick={() => setIsDarkMode((current) => !current)}
             className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition-colors ${
               isDarkMode
-                ? "border-[#3e3d38] bg-[#2b2a27] text-yellow-300 hover:bg-[#383733]"
-                : "border-hairline bg-canvas text-ink hover:bg-surface-soft"
+                ? "border-dark-border bg-dark-soft text-yellow-300 hover:bg-zinc-700"
+                : "border-hairline bg-surface-card text-ink hover:bg-surface-soft"
             }`}
           >
             {isDarkMode ? <FaSun className="h-4 w-4" /> : <FaMoon className="h-4 w-4" />}
@@ -67,7 +64,7 @@ export default function LibraryPage() {
 
       <main className="flex-1 px-4 py-6 md:px-10 md:py-8 max-w-5xl mx-auto w-full">
         <div className="mb-6 md:mb-8">
-          <h2 className={`text-lg md:text-xl font-bold mb-4 ${isDarkMode ? "text-[#e6e4df]" : "text-ink"}`}>
+          <h2 className={`text-lg md:text-xl font-bold mb-4 ${isDarkMode ? "text-dark-text" : "text-ink"}`}>
             Phân loại theo nhóm
           </h2>
           <div className="flex flex-wrap gap-2 md:gap-3">
@@ -80,11 +77,11 @@ export default function LibraryPage() {
                   className={`px-4 py-2 rounded-full text-sm md:text-base font-medium transition-colors cursor-pointer ${
                     isActive
                       ? isDarkMode
-                        ? "bg-primary text-[#e6e4df]"
+                        ? "bg-primary text-white"
                         : "bg-primary text-on-dark"
                       : isDarkMode
-                      ? "bg-[#2b2a27] text-[#a3a199] hover:bg-[#383733] border border-[#3e3d38]"
-                      : "bg-canvas text-ink hover:bg-surface-soft border border-hairline"
+                      ? "bg-dark-soft text-dark-text-muted hover:bg-zinc-700 border border-dark-border"
+                      : "bg-surface-card text-ink hover:bg-surface-soft border border-hairline"
                   }`}
                 >
                   {label}
@@ -102,8 +99,8 @@ export default function LibraryPage() {
                 key={item.id}
                 className={`rounded-xl border transition-all overflow-hidden ${
                   isDarkMode
-                    ? "border-[#3e3d38] bg-[#2b2a27]"
-                    : "border-hairline bg-canvas shadow-sm"
+                    ? "border-dark-border bg-dark-elevated"
+                    : "border-hairline bg-surface-card shadow-sm"
                 }`}
               >
                 <button
@@ -120,7 +117,7 @@ export default function LibraryPage() {
                     </span>
                     <h3
                       className={`text-lg md:text-xl font-bold ${
-                        isDarkMode ? "text-[#e6e4df]" : "text-ink"
+                        isDarkMode ? "text-dark-text" : "text-ink"
                       }`}
                     >
                       {item.name}
@@ -131,35 +128,23 @@ export default function LibraryPage() {
                       isExpanded ? "rotate-180" : ""
                     } ${
                       isDarkMode
-                        ? "bg-[#2b2a27] text-[#a3a199]"
-                        : "bg-canvas text-muted"
+                        ? "bg-dark-soft text-dark-text-muted"
+                        : "bg-surface-soft text-muted"
                     }`}
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                    <FaChevronDown className="h-5 w-5" />
                   </div>
                 </button>
 
                 {isExpanded && (
                   <div
                     className={`px-5 pb-5 pt-2 border-t ${
-                      isDarkMode ? "border-[#3e3d38]" : "border-hairline"
+                      isDarkMode ? "border-dark-border" : "border-hairline"
                     }`}
                   >
                     <p
                       className={`text-base md:text-lg mb-4 leading-relaxed ${
-                        isDarkMode ? "text-[#a3a199]" : "text-ink"
+                        isDarkMode ? "text-dark-text-muted" : "text-ink"
                       }`}
                     >
                       {item.description}
@@ -184,7 +169,7 @@ export default function LibraryPage() {
           
           {filteredLibrary.length === 0 && (
             <div className={`p-8 text-center rounded-xl border ${
-              isDarkMode ? "border-[#3e3d38] text-[#a3a199]" : "border-hairline text-muted"
+              isDarkMode ? "border-dark-border text-dark-text-muted" : "border-hairline text-muted"
             }`}>
               Không tìm thấy kiểu lừa đảo nào trong danh mục này.
             </div>

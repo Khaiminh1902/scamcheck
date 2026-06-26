@@ -2,28 +2,29 @@ type Props = {
   level: "safe" | "warning" | "danger";
 };
 
-export default function level({ level }: Props) {
-  const config = {
-    safe: {
-      label: "An toàn",
-      color: "#22c55e",
-    },
-    warning: {
-      label: "Nghi ngờ",
-      color: "#eab308",
-    },
-    danger: {
-      label: "Nguy hiểm",
-      color: "#ef4444",
-    },
-  };
+const LEVEL_CONFIG = {
+  safe: {
+    label: "An toàn",
+    className: "bg-green-600 text-white",
+  },
+  warning: {
+    label: "Cảnh báo",
+    className: "bg-amber-500 text-white",
+  },
+  danger: {
+    label: "Nguy hiểm",
+    className: "bg-red-600 text-white",
+  },
+} as const;
+
+export default function Level({ level }: Props) {
+  const item = LEVEL_CONFIG[level];
 
   return (
     <div
-      className={`px-4 py-2 rounded font-bold`}
-      style={{ backgroundColor: config[level].color, color: "#ffffff" }}
+      className={`rounded-full px-4 py-2 text-sm font-bold ${item.className}`}
     >
-      {config[level].label}
+      {item.label}
     </div>
   );
 }

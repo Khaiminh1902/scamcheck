@@ -1,16 +1,31 @@
 "use client";
 
-import { useState, useSyncExternalStore, useRef } from "react";
-import { FaMoon, FaSun } from "react-icons/fa6";
+import { useState, useSyncExternalStore } from "react";
+import {
+  FaBars,
+  FaKey,
+  FaLink,
+  FaMoon,
+  FaMoneyBillWave,
+  FaPlus,
+  FaShieldHalved,
+  FaSun,
+  FaTrash,
+  FaTriangleExclamation,
+  FaXmark,
+} from "react-icons/fa6";
 import RiskBadge from "./components/level";
-import { DetectiveResult } from "@/types/detective";
+import {
+  DetectiveResult,
+  DetectiveScenario,
+  ResponderStep,
+  ScenarioKey,
+} from "@/types/detective";
 import Link from "next/link";
 import ThamTu from "../public/tt.png";
 import TamLy from "../public/tl.png";
 import Image from "next/image";
-import WarningCard from "./components/WarningCard";
-import html2canvas from "html2canvas";
-import { QRCodeSVG } from "qrcode.react";
+import { useThemeMode } from "./components/useThemeMode";
 
 type HistoryItem = {
   message: string;
@@ -32,13 +47,20 @@ const SAMPLE_MESSAGES = [
   {
     label: "Giả công an",
     tone: "Phạt nguội",
-    text: "Đây là cục cảnh sát giao thông, bạn có 1 biên lai phạt nguội chưa nộp. Hãy bấm vào link https://de.pornhub.org/ và chuyển tiền sớm nhất có thể",
+    text: "Đây là cục cảnh sát giao thông, bạn có 1 biên lai phạt nguội chưa nộp. Hãy bấm vào link và chuyển tiền sớm nhất có thể",
   },
   {
     label: "Trúng thưởng",
     tone: "Phí nhận quà",
     text: "Chúc mừng bạn đã trúng thưởng 1 chiếc điện thoại Iphone 17 Pro Max. Vui lòng chuyển khoản 1 triệu phí hồ sơ để nhận phần thưởng",
   },
+];
+
+const DEFAULT_SCENARIOS: DetectiveScenario[] = [
+  { key: "none", label: "Chưa làm gì cả" },
+  { key: "link", label: "Đã bấm vào đường dẫn" },
+  { key: "money", label: "Đã chuyển khoản tiền" },
+  { key: "otp", label: "Đã cung cấp mã OTP / mật khẩu" },
 ];
 
 function parseHistory(value: string | null): HistoryItem[] {
@@ -90,14 +112,18 @@ function shortenText(text: string, wordLimit: number) {
 }
 
 export default function Page() {
+  const { isDarkMode, setIsDarkMode, themeToggleLabel } = useThemeMode();
   const [message, setMessage] = useState("");
   const [result, setResult] = useState<DetectiveResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [selectedScenario, setSelectedScenario] = useState<string | null>(null);
+  const [selectedScenario, setSelectedScenario] = useState<ScenarioKey | null>(
+    null,
+  );
   const [responderLoading, setResponderLoading] = useState(false);
-  const [responderSteps, setResponderSteps] = useState<Array<{ stepNumber: number; action: string; quote: string }> | null>(null);
+  const [responderSteps, setResponderSteps] = useState<ResponderStep[] | null>(
+    null,
+  );
   const [responderError, setResponderError] = useState("");
   const history = useSyncExternalStore(
     subscribeToHistory,
@@ -105,15 +131,11 @@ export default function Page() {
     getServerHistorySnapshot,
   );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [shareUrl, setShareUrl] = useState<string | undefined>(undefined);
-  const warningCardRef = useRef<HTMLDivElement>(null);
   const messageLength = message.length;
-  const themeToggleLabel = isDarkMode
-    ? "Chuyển sang giao diện sáng"
-    : "Chuyển sang giao diện tối";
 
-  async function handleSelectScenario(scenario: "none" | "link" | "money" | "otp") {
+  async function handleSelectScenario(
+    scenario: "none" | "link" | "money" | "otp",
+  ) {
     setSelectedScenario(scenario);
     if (scenario === "none") {
       setResponderSteps(null);
@@ -138,14 +160,21 @@ export default function Page() {
         throw new Error("Không thể kết nối đến máy chủ ứng cứu");
       }
 
-      const data = await res.json();
+      const data = (await res.json()) as {
+        error?: string;
+        steps?: ResponderStep[];
+      };
       if (data.error) {
         throw new Error(data.error);
       }
       setResponderSteps(data.steps || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setResponderError(err.message || "Đã xảy ra lỗi khi liên hệ với Người ứng cứu.");
+      setResponderError(
+        err instanceof Error
+          ? err.message
+          : "Đã xảy ra lỗi khi liên hệ với Người ứng cứu.",
+      );
     } finally {
       setResponderLoading(false);
     }
@@ -175,7 +204,6 @@ export default function Page() {
     localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(updated));
     window.dispatchEvent(new Event("scamcheck-history"));
   }
-
 
   async function handleCheck() {
     setErrorMsg("");
@@ -231,59 +259,6 @@ export default function Page() {
     }
   }
 
-  /*
-  async function handleShareAndDownloadCard() {
-    if (!warningCardRef.current || !result) return;
-    try {
-      setIsDownloading(true);
-
-      // 1. Gửi dữ liệu lên Server để lấy Share ID
-      let currentShareUrl = typeof window !== "undefined" ? window.location.origin : "https://scamcheck.vn";
-      try {
-        const res = await fetch('/api/share/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message, result })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.shareId) {
-            const origin = typeof window !== "undefined" ? window.location.origin : "https://scamcheck.vn";
-            currentShareUrl = `${origin}/share/${data.shareId}`;
-            setShareUrl(currentShareUrl);
-            // Đợi component cập nhật xong URL mới vào DOM
-            await new Promise((resolve) => setTimeout(resolve, 200));
-          }
-        }
-      } catch (apiErr) {
-        console.error("Lỗi khi đẩy dữ liệu lên server:", apiErr);
-        // Nếu lỗi, vẫn tiếp tục sinh ảnh với URL mặc định
-      }
-
-      // 2. Chụp ảnh thẻ cảnh báo
-      const canvas = await html2canvas(warningCardRef.current, {
-        scale: 2, // High resolution
-        useCORS: true,
-        backgroundColor: null,
-        windowWidth: warningCardRef.current.scrollWidth,
-        windowHeight: warningCardRef.current.scrollHeight,
-        x: 0,
-        y: 0,
-      });
-      const dataUrl = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.download = `scamcheck-canh-bao-${Date.now()}.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error("Lỗi khi tạo ảnh thẻ cảnh báo:", err);
-      alert("Đã có lỗi xảy ra khi tạo ảnh. Vui lòng thử lại sau.");
-    } finally {
-      setIsDownloading(false);
-    }
-  }
-  */
-
   function escapeHtml(text: string) {
     return text
       .replace(/&/g, "&amp;")
@@ -315,48 +290,46 @@ export default function Page() {
 
   return (
     <div
-      className={`flex flex-col min-h-screen md:h-screen font-sans transition-colors ${isDarkMode ? "dark bg-[#2b2a27] text-[#e6e4df]" : "bg-canvas text-ink"
-        }`}
+      className={`flex flex-col min-h-screen md:h-screen font-sans transition-colors ${
+        isDarkMode
+          ? "dark bg-dark-elevated text-dark-text"
+          : "bg-canvas text-ink"
+      }`}
       style={{ colorScheme: isDarkMode ? "dark" : "light" }}
     >
       <header
-        className={`md:hidden flex items-center justify-between px-5 py-4 border-b shrink-0 relative z-10 transition-colors ${isDarkMode
-          ? "border-[#3e3d38] bg-[#2b2a27]"
-          : "border-hairline bg-canvas"
-          }`}
+        className={`md:hidden flex items-center justify-between px-5 py-4 border-b shrink-0 relative z-10 transition-colors ${
+          isDarkMode
+            ? "border-dark-border bg-dark-elevated"
+            : "border-hairline bg-canvas"
+        }`}
       >
         <div className="flex items-center gap-3">
           <button
-            className={`cursor-pointer p-2 -ml-2 rounded-md transition-colors ${isDarkMode
-              ? "text-[#a3a199] hover:bg-[#383733]"
-              : "text-ink hover:bg-surface-soft"
-              }`}
+            className={`cursor-pointer p-2 -ml-2 rounded-md transition-colors ${
+              isDarkMode
+                ? "text-dark-text-muted hover:bg-dark-soft"
+                : "text-ink hover:bg-surface-soft"
+            }`}
             onClick={() => setIsSidebarOpen(true)}
           >
-            <svg
-              className="w-7 h-7"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              ></path>
-            </svg>
+            <FaBars className="h-7 w-7" />
           </button>
-          <h1 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-ink"}`}>Scam Check</h1>
+          <h1
+            className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-ink"}`}
+          >
+            Scam Check
+          </h1>
           <button
             type="button"
             aria-label={themeToggleLabel}
             title={themeToggleLabel}
             onClick={() => setIsDarkMode((current) => !current)}
-            className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition-colors ${isDarkMode
-              ? "border-[#3e3d38] bg-[#2b2a27] text-yellow-300 hover:bg-[#383733]"
-              : "border-hairline bg-canvas text-ink hover:bg-surface-soft"
-              }`}
+            className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition-colors ${
+              isDarkMode
+                ? "border-dark-border bg-dark-elevated text-yellow-300 hover:bg-dark-soft"
+                : "border-hairline bg-canvas text-ink hover:bg-surface-soft"
+            }`}
           >
             {isDarkMode ? (
               <FaSun className="h-4 w-4" />
@@ -366,10 +339,11 @@ export default function Page() {
           </button>
         </div>
         <button
-          className={`cursor-pointer flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${isDarkMode
-            ? "border-[#3e3d38] bg-[#2b2a27] hover:bg-[#383733]"
-            : "border-hairline bg-canvas hover:bg-surface-soft"
-            }`}
+          className={`cursor-pointer flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+            isDarkMode
+              ? "border-dark-border bg-dark-elevated hover:bg-dark-soft"
+              : "border-hairline bg-canvas hover:bg-surface-soft"
+          }`}
           onClick={() => {
             setMessage("");
             setResult(null);
@@ -393,26 +367,32 @@ export default function Page() {
 
         <aside
           className={`
-          fixed inset-y-0 left-0 z-50 w-[70vw] max-w-96 flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${isDarkMode ? "bg-[#2b2a27]" : "bg-canvas"}
+          fixed inset-y-0 left-0 z-50 w-[70vw] max-w-96 flex flex-col shadow-2xl transform transition-transform duration-300 ease-in-out ${isDarkMode ? "bg-dark-elevated" : "bg-canvas"}
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          md:relative md:translate-x-0 md:w-80 md:border-r ${isDarkMode ? "border-[#3e3d38]" : "md:border-gray-200"} md:shadow-none md:z-auto shrink-0 overflow-hidden
+          md:relative md:translate-x-0 md:w-80 md:border-r ${isDarkMode ? "border-dark-border" : "md:border-gray-200"} md:shadow-none md:z-auto shrink-0 overflow-hidden
         `}
         >
           <div
-            className={`flex mb-6 items-center justify-between px-5 pt-6 pb-2 border-b md:border-none shrink-0 ${isDarkMode ? "border-[#3e3d38]" : "border-hairline"
-              }`}
+            className={`flex mb-6 items-center justify-between px-5 pt-6 pb-2 border-b md:border-none shrink-0 ${
+              isDarkMode ? "border-dark-border" : "border-hairline"
+            }`}
           >
             <div className="hidden md:flex items-center gap-3">
-              <h1 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-ink"}`}>Scam Check</h1>
+              <h1
+                className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-ink"}`}
+              >
+                Scam Check
+              </h1>
               <button
                 type="button"
                 aria-label={themeToggleLabel}
                 title={themeToggleLabel}
                 onClick={() => setIsDarkMode((current) => !current)}
-                className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition-colors ${isDarkMode
-                  ? "border-[#3e3d38] bg-[#2b2a27] text-yellow-300 hover:bg-[#383733]"
-                  : "border-hairline bg-canvas text-ink hover:bg-surface-soft"
-                  }`}
+                className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition-colors ${
+                  isDarkMode
+                    ? "border-dark-border bg-dark-elevated text-yellow-300 hover:bg-dark-soft"
+                    : "border-hairline bg-canvas text-ink hover:bg-surface-soft"
+                }`}
               >
                 {isDarkMode ? (
                   <FaSun className="h-4 w-4" />
@@ -421,36 +401,30 @@ export default function Page() {
                 )}
               </button>
             </div>
-            <h1 className={`text-xl font-bold md:hidden ${isDarkMode ? "text-[#e6e4df]" : "text-ink"}`}>Lịch sử</h1>
+            <h1
+              className={`text-xl font-bold md:hidden ${isDarkMode ? "text-dark-text" : "text-ink"}`}
+            >
+              Lịch sử
+            </h1>
             <button
-              className={`cursor-pointer md:hidden p-2 -mr-2 rounded-md transition-colors ${isDarkMode
-                ? "text-[#a3a199] hover:bg-[#383733]"
-                : "text-muted hover:bg-surface-soft"
-                }`}
+              className={`cursor-pointer md:hidden p-2 -mr-2 rounded-md transition-colors ${
+                isDarkMode
+                  ? "text-[#a3a199] hover:bg-[#383733]"
+                  : "text-muted hover:bg-surface-soft"
+              }`}
               onClick={() => setIsSidebarOpen(false)}
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                ></path>
-              </svg>
+              <FaXmark className="h-6 w-6" />
             </button>
           </div>
 
           <div className="px-5 pb-6 flex flex-1 min-h-0 flex-col">
             <button
-              className={`cursor-pointer hidden md:flex mb-3 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
-                ? "border-[#3e3d38] bg-[#2b2a27] hover:bg-[#383733]"
-                : "border-hairline bg-canvas hover:bg-surface-soft"
-                }`}
+              className={`cursor-pointer hidden md:flex mb-3 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${
+                isDarkMode
+                  ? "border-[#3e3d38] bg-[#2b2a27] hover:bg-[#383733]"
+                  : "border-hairline bg-canvas hover:bg-surface-soft"
+              }`}
               onClick={() => {
                 setMessage("");
                 setResult(null);
@@ -460,32 +434,35 @@ export default function Page() {
                 setResponderError("");
               }}
             >
-              <span className="text-2xl leading-none">+</span>
+              <FaPlus className="h-5 w-5" />
               <span>Tìm kiếm mới</span>
             </button>
             <Link
-              className={`cursor-pointer hidden md:flex mb-3 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
-                ? "border-[#3e3d38] bg-[#2b2a27] hover:bg-[#383733]"
-                : "border-hairline bg-canvas hover:bg-surface-soft"
-                }`}
+              className={`cursor-pointer hidden md:flex mb-3 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${
+                isDarkMode
+                  ? "border-[#3e3d38] bg-[#2b2a27] hover:bg-[#383733]"
+                  : "border-hairline bg-canvas hover:bg-surface-soft"
+              }`}
               href="/luyentap"
             >
               Chế độ luyện tập
             </Link>
             <Link
-              className={`cursor-pointer hidden md:flex mb-3 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
-                ? "border-[#3e3d38] bg-[#2b2a27] hover:bg-[#383733]"
-                : "border-hairline bg-canvas hover:bg-surface-soft"
-                }`}
+              className={`cursor-pointer hidden md:flex mb-3 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${
+                isDarkMode
+                  ? "border-[#3e3d38] bg-[#2b2a27] hover:bg-[#383733]"
+                  : "border-hairline bg-canvas hover:bg-surface-soft"
+              }`}
               href="/thuvien"
             >
               Thư viện lừa đảo
             </Link>
             <Link
-              className={`cursor-pointer hidden md:flex mb-8 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${isDarkMode
-                ? "border-[#3e3d38] bg-[#2b2a27] hover:bg-[#383733]"
-                : "border-hairline bg-canvas hover:bg-surface-soft"
-                }`}
+              className={`cursor-pointer hidden md:flex mb-8 w-full items-center gap-3 rounded-xl border px-5 py-4 text-lg font-medium transition-colors ${
+                isDarkMode
+                  ? "border-[#3e3d38] bg-[#2b2a27] hover:bg-[#383733]"
+                  : "border-hairline bg-canvas hover:bg-surface-soft"
+              }`}
               href="/danhba"
             >
               Danh bạ khẩn cấp
@@ -494,8 +471,9 @@ export default function Page() {
             <div className="flex min-h-0 flex-1 flex-col">
               <div className="flex items-center justify-between mb-4 px-1">
                 <h2
-                  className={`text-base font-semibold uppercase tracking-wider ${isDarkMode ? "text-[#a3a199]" : "text-ink"
-                    }`}
+                  className={`text-base font-semibold uppercase tracking-wider ${
+                    isDarkMode ? "text-[#a3a199]" : "text-ink"
+                  }`}
                 >
                   Lịch sử tìm kiếm ({history.length})
                 </h2>
@@ -524,8 +502,9 @@ export default function Page() {
               >
                 {history.length === 0 && (
                   <p
-                    className={`px-1 text-lg ${isDarkMode ? "text-[#a3a199]" : "text-muted"
-                      }`}
+                    className={`px-1 text-lg ${
+                      isDarkMode ? "text-[#a3a199]" : "text-muted"
+                    }`}
                   >
                     Chưa có lịch sử.
                   </p>
@@ -533,10 +512,11 @@ export default function Page() {
                 {history.map((item, idx) => (
                   <div
                     key={idx}
-                    className={`flex items-start justify-between w-full rounded-xl border border-transparent transition-colors pr-2 ${isDarkMode
-                      ? "hover:bg-[#383733] hover:border-[#3e3d38]"
-                      : "hover:bg-surface-soft hover:border-hairline-soft"
-                      }`}
+                    className={`flex items-start justify-between w-full rounded-xl border border-transparent transition-colors pr-2 ${
+                      isDarkMode
+                        ? "hover:bg-[#383733] hover:border-[#3e3d38]"
+                        : "hover:bg-surface-soft hover:border-hairline-soft"
+                    }`}
                   >
                     <button
                       onClick={() => loadHistoryItem(item)}
@@ -546,8 +526,9 @@ export default function Page() {
                         {item.message}
                       </p>
                       <p
-                        className={`text-sm mt-1 ${isDarkMode ? "text-[#a3a199]" : "text-muted"
-                          }`}
+                        className={`text-sm mt-1 ${
+                          isDarkMode ? "text-[#a3a199]" : "text-muted"
+                        }`}
                       >
                         {item.date}
                       </p>
@@ -564,19 +545,7 @@ export default function Page() {
                           : "text-muted hover:text-red-500 hover:bg-gray-300"
                       }`}
                     >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
+                      <FaTrash className="h-5 w-5" />
                     </button>
                   </div>
                 ))}
@@ -588,22 +557,25 @@ export default function Page() {
         <main className="flex-1 px-5 py-6 md:px-10 md:py-10 order-1 md:order-2 md:overflow-y-auto relative">
           <div className="mx-auto w-full max-w-4xl">
             <div
-              className={`mb-5 rounded-xl border p-3 md:mb-6 md:p-5 transition-colors ${isDarkMode
-                ? "border-[#3e3d38] bg-[#2b2a27]"
-                : "border-hairline bg-canvas"
-                }`}
+              className={`mb-5 rounded-xl border p-3 md:mb-6 md:p-5 transition-colors ${
+                isDarkMode
+                  ? "border-[#3e3d38] bg-[#2b2a27]"
+                  : "border-hairline bg-canvas"
+              }`}
             >
               <div className="mb-3 flex flex-col gap-1 md:mb-4 md:flex-row md:items-end md:justify-between">
                 <div>
                   <p
-                    className={`text-xs font-semibold uppercase tracking-wider ${isDarkMode ? "text-[#a3a199]" : "text-muted"
-                      }`}
+                    className={`text-xs font-semibold uppercase tracking-wider ${
+                      isDarkMode ? "text-[#a3a199]" : "text-muted"
+                    }`}
                   >
                     Thử nhanh
                   </p>
                   <h2
-                    className={`text-base font-bold md:text-xl ${isDarkMode ? "text-[#e6e4df]" : "text-ink"
-                      }`}
+                    className={`text-base font-bold md:text-xl ${
+                      isDarkMode ? "text-[#e6e4df]" : "text-ink"
+                    }`}
                   >
                     Tin nhắn mẫu để thử nghiệm
                   </h2>
@@ -622,28 +594,32 @@ export default function Page() {
                       setResponderSteps(null);
                       setResponderError("");
                     }}
-                    className={`group min-w-0 cursor-pointer overflow-hidden rounded-lg border px-3 py-2 text-left shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 md:p-4 ${isDarkMode
-                      ? "border-[#3e3d38] bg-[#2b2a27] hover:border-blue-500 hover:bg-[#383733]"
-                      : "border-hairline bg-canvas hover:border-blue-300 hover:bg-blue-50"
-                      }`}
+                    className={`group min-w-0 cursor-pointer overflow-hidden rounded-lg border px-3 py-2 text-left shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 md:p-4 ${
+                      isDarkMode
+                        ? "border-[#3e3d38] bg-[#2b2a27] hover:border-blue-500 hover:bg-[#383733]"
+                        : "border-hairline bg-canvas hover:border-blue-300 hover:bg-blue-50"
+                    }`}
                   >
                     <span
-                      className={`hidden md:mb-2 md:inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wider ${isDarkMode
-                        ? "bg-blue-950 text-blue-200"
-                        : "bg-surface-card text-blue-700 group-hover:bg-white"
-                        }`}
+                      className={`hidden md:mb-2 md:inline-flex rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wider ${
+                        isDarkMode
+                          ? "bg-blue-950 text-blue-200"
+                          : "bg-surface-card text-blue-700 group-hover:bg-white"
+                      }`}
                     >
                       {btn.tone}
                     </span>
                     <span
-                      className={`block w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold md:text-lg ${isDarkMode ? "text-[#e6e4df]" : "text-ink"
-                        }`}
+                      className={`block w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold md:text-lg ${
+                        isDarkMode ? "text-[#e6e4df]" : "text-ink"
+                      }`}
                     >
                       {btn.label}
                     </span>
                     <span
-                      className={`mt-0.5 block w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm md:mt-1 md:line-clamp-2 md:whitespace-normal md:text-sm md:wrap-anywhere ${isDarkMode ? "text-[#a3a199]" : "text-muted"
-                        }`}
+                      className={`mt-0.5 block w-full min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-sm md:mt-1 md:line-clamp-2 md:whitespace-normal md:text-sm md:wrap-anywhere ${
+                        isDarkMode ? "text-[#a3a199]" : "text-muted"
+                      }`}
                     >
                       <span className="md:hidden">
                         {shortenText(btn.text, 6)}
@@ -656,10 +632,11 @@ export default function Page() {
             </div>
 
             <textarea
-              className={`h-40 md:h-64 w-full resize-none rounded-xl border p-4 md:p-5 text-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-sm ${isDarkMode
-                ? "border-[#3e3d38] bg-[#2b2a27] text-[#e6e4df] placeholder:text-gray-500"
-                : "border-hairline bg-canvas text-ink placeholder:text-gray-500"
-                }`}
+              className={`h-40 md:h-64 w-full resize-none rounded-xl border p-4 md:p-5 text-lg outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all shadow-sm ${
+                isDarkMode
+                  ? "border-[#3e3d38] bg-[#2b2a27] text-[#e6e4df] placeholder:text-gray-500"
+                  : "border-hairline bg-canvas text-ink placeholder:text-gray-500"
+              }`}
               placeholder="Dán tin SMS, email hoặc đoạn chat cần kiểm tra vào đây..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -667,12 +644,13 @@ export default function Page() {
 
             <div className="mt-2 flex justify-end">
               <span
-                className={`text-sm md:text-base ${messageLength > 5000
-                  ? "text-red-500"
-                  : isDarkMode
-                    ? "text-[#a3a199]"
-                    : "text-muted"
-                  }`}
+                className={`text-sm md:text-base ${
+                  messageLength > 5000
+                    ? "text-red-500"
+                    : isDarkMode
+                      ? "text-[#a3a199]"
+                      : "text-muted"
+                }`}
               >
                 {messageLength}/5000
               </span>
@@ -680,23 +658,28 @@ export default function Page() {
 
             {errorMsg && (
               <div
-                className={`mt-4 p-4 rounded-lg text-lg border ${isDarkMode
-                  ? "border-error bg-red-950 text-red-200"
-                  : "border-error bg-error text-on-primary text-error"
-                  }`}
+                className={`mt-4 p-4 rounded-lg text-lg border ${
+                  isDarkMode
+                    ? "border-error bg-red-950 text-red-200"
+                    : "border-error bg-error text-on-primary text-error"
+                }`}
               >
-                ⚠️ {errorMsg}
+                <span className="flex items-center gap-2">
+                  <FaTriangleExclamation className="h-5 w-5 shrink-0" />
+                  {errorMsg}
+                </span>
               </div>
             )}
 
-            <div className="mt-6 flex justify-center">
+            <div className="flex justify-center mt-4">
               <button
                 onClick={handleCheck}
                 disabled={loading}
-                className={`cursor-pointer rounded-xl px-8 py-4 text-xl font-bold transition-colors w-full md:w-auto shadow-md disabled:bg-gray-400 ${isDarkMode
-                  ? "bg-red-600 text-[#e6e4df] hover:bg-primary-active"
-                  : "bg-red-600 text-on-dark hover:bg-primary-active"
-                  }`}
+                className={`cursor-pointer rounded-xl px-8 py-4 text-xl font-bold transition-colors w-full md:w-auto shadow-md disabled:bg-gray-400 ${
+                  isDarkMode
+                    ? "bg-red-600 text-[#e6e4df] hover:bg-primary-active"
+                    : "bg-red-600 text-on-dark hover:bg-primary-active"
+                }`}
               >
                 {loading ? "Đang phân tích..." : "Kiểm tra rủi ro"}
               </button>
@@ -704,15 +687,17 @@ export default function Page() {
 
             {loading && (
               <div
-                className={`mt-10 p-6 md:p-10 flex flex-col items-center justify-center space-y-4 rounded-xl border ${isDarkMode
-                  ? "border-[#3e3d38] bg-[#2b2a27]"
-                  : "border-hairline bg-canvas"
-                  }`}
+                className={`mt-10 p-6 md:p-10 flex flex-col items-center justify-center space-y-4 rounded-xl border ${
+                  isDarkMode
+                    ? "border-[#3e3d38] bg-[#2b2a27]"
+                    : "border-hairline bg-canvas"
+                }`}
               >
                 <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 <p
-                  className={`text-lg md:text-xl font-medium text-center ${isDarkMode ? "text-[#a3a199]" : "text-ink"
-                    }`}
+                  className={`text-lg md:text-xl font-medium text-center ${
+                    isDarkMode ? "text-[#a3a199]" : "text-ink"
+                  }`}
                 >
                   Thám tử đang soi tin nhắn, xin bác chờ chút ...
                 </p>
@@ -729,22 +714,25 @@ export default function Page() {
                 </div>
 
                 <div
-                  className={`rounded-xl border p-4 md:p-6 shadow-sm ${isDarkMode
-                    ? "border-[#3e3d38] bg-[#2b2a27]"
-                    : "border-hairline bg-canvas"
-                    }`}
+                  className={`rounded-xl border p-4 md:p-6 shadow-sm ${
+                    isDarkMode
+                      ? "border-[#3e3d38] bg-[#2b2a27]"
+                      : "border-hairline bg-canvas"
+                  }`}
                 >
                   <h2
-                    className={`mb-3 md:mb-4 text-lg md:text-xl font-bold border-b pb-2 ${isDarkMode
-                      ? "border-[#3e3d38] text-[#e6e4df]"
-                      : "border-hairline text-ink"
-                      }`}
+                    className={`mb-3 md:mb-4 text-lg md:text-xl font-bold border-b pb-2 ${
+                      isDarkMode
+                        ? "border-[#3e3d38] text-[#e6e4df]"
+                        : "border-hairline text-ink"
+                    }`}
                   >
                     Nội dung đã phân tích
                   </h2>
                   <div
-                    className={`text-base md:text-lg leading-relaxed ${isDarkMode ? "text-[#a3a199]" : "text-ink"
-                      }`}
+                    className={`text-base md:text-lg leading-relaxed ${
+                      isDarkMode ? "text-[#a3a199]" : "text-ink"
+                    }`}
                     dangerouslySetInnerHTML={{
                       __html: (result.scamSigns || []).reduce(
                         (current, sign) => highlightText(current, sign.excerpt),
@@ -755,35 +743,45 @@ export default function Page() {
                 </div>
 
                 <div
-                  className={`rounded-xl border p-4 md:p-6 shadow-sm ${isDarkMode
-                    ? "border-[#3e3d38] bg-[#2b2a27]"
-                    : "border-hairline bg-canvas"
-                    }`}
+                  className={`rounded-xl border p-4 md:p-6 shadow-sm ${
+                    isDarkMode
+                      ? "border-[#3e3d38] bg-[#2b2a27]"
+                      : "border-hairline bg-canvas"
+                  }`}
                 >
                   <h2
-                    className={`mb-4 text-lg md:text-xl font-bold border-b pb-2 flex items-center gap-2 ${isDarkMode
-                      ? "border-[#3e3d38] text-[#e6e4df]"
-                      : "border-hairline text-ink"
-                      }`}
+                    className={`mb-4 text-lg md:text-xl font-bold border-b pb-2 flex items-center gap-2 ${
+                      isDarkMode
+                        ? "border-[#3e3d38] text-[#e6e4df]"
+                        : "border-hairline text-ink"
+                    }`}
                   >
-                    <Image src={ThamTu} alt="Tham Tu" height={20} width={60} style={{ width: "auto", height: "auto" }} />{" "}
+                    <Image
+                      src={ThamTu}
+                      alt="Tham Tu"
+                      height={20}
+                      width={60}
+                      style={{ width: "auto", height: "auto" }}
+                    />{" "}
                     Phân tích kỹ thuật từ thám tử
                   </h2>
 
                   <div className="space-y-4">
                     <h3
-                      className={`text-base md:text-lg font-bold ${isDarkMode ? "text-[#e6e4df]" : "text-ink"
-                        }`}
+                      className={`text-base md:text-lg font-bold ${
+                        isDarkMode ? "text-[#e6e4df]" : "text-ink"
+                      }`}
                     >
                       Dấu hiệu lừa đảo phát hiện được
                     </h3>
 
                     {result.scamSigns.length === 0 && (
                       <div
-                        className={`p-4 rounded-xl text-base md:text-lg ${isDarkMode
-                          ? "bg-green-950 text-green-200"
-                          : "bg-green-50 text-green-700"
-                          }`}
+                        className={`p-4 rounded-xl text-base md:text-lg ${
+                          isDarkMode
+                            ? "bg-green-950 text-green-200"
+                            : "bg-green-50 text-green-700"
+                        }`}
                       >
                         ✅ Không phát hiện dấu hiệu lừa đảo rõ ràng. Tuy nhiên,
                         bác vẫn nên cẩn trọng
@@ -793,30 +791,34 @@ export default function Page() {
                     {result.scamSigns.map((sign, index) => (
                       <div
                         key={index}
-                        className={`rounded-xl border p-4 md:p-5 ${isDarkMode
-                          ? "border-error bg-red-950"
-                          : "border-error bg-red-50"
-                          }`}
+                        className={`rounded-xl border p-4 md:p-5 ${
+                          isDarkMode
+                            ? "border-error bg-red-950"
+                            : "border-error bg-red-50"
+                        }`}
                       >
                         <h4
-                          className={`text-lg md:text-xl font-bold mb-2 ${isDarkMode ? "text-red-300" : "text-red-600"
-                            }`}
+                          className={`text-lg md:text-xl font-bold mb-2 ${
+                            isDarkMode ? "text-red-300" : "text-red-600"
+                          }`}
                         >
                           🚩 {sign.title}
                         </h4>
                         <p
-                          className={`text-base md:text-lg mb-3 md:mb-4 ${isDarkMode ? "text-[#a3a199]" : "text-ink"
-                            }`}
+                          className={`text-base md:text-lg mb-3 md:mb-4 ${
+                            isDarkMode ? "text-[#a3a199]" : "text-ink"
+                          }`}
                         >
                           {sign.explanation}
                         </p>
 
                         {sign.excerpt && (
                           <div
-                            className={`rounded-lg p-3 text-base md:text-lg border italic ${isDarkMode
-                              ? "border-yellow-800 bg-yellow-950 text-yellow-100"
-                              : "border-yellow-200 bg-yellow-100 text-ink"
-                              }`}
+                            className={`rounded-lg p-3 text-base md:text-lg border italic ${
+                              isDarkMode
+                                ? "border-yellow-800 bg-yellow-950 text-yellow-100"
+                                : "border-yellow-200 bg-yellow-100 text-ink"
+                            }`}
                           >
                             &quot;{sign.excerpt}&quot;
                           </div>
@@ -827,21 +829,24 @@ export default function Page() {
 
                   {result.recommendedActions?.length > 0 && (
                     <div
-                      className={`mt-5 rounded-xl border p-4 md:p-5 ${isDarkMode
-                        ? "border-primary bg-blue-950"
-                        : "border-primary bg-surface-card"
-                        }`}
+                      className={`mt-5 rounded-xl border p-4 md:p-5 ${
+                        isDarkMode
+                          ? "border-primary bg-blue-950"
+                          : "border-primary bg-surface-card"
+                      }`}
                     >
                       <h3
-                        className={`mb-3 text-base md:text-lg font-bold ${isDarkMode ? "text-blue-200" : "text-blue-800"
-                          }`}
+                        className={`mb-3 text-base md:text-lg font-bold ${
+                          isDarkMode ? "text-blue-200" : "text-blue-800"
+                        }`}
                       >
                         Hành động bác nên làm tiếp theo
                       </h3>
 
                       <ul
-                        className={`ml-5 md:ml-6 list-disc space-y-2 md:space-y-3 text-base md:text-lg marker:text-blue-500 ${isDarkMode ? "text-blue-100" : "text-blue-900"
-                          }`}
+                        className={`ml-5 md:ml-6 list-disc space-y-2 md:space-y-3 text-base md:text-lg marker:text-blue-500 ${
+                          isDarkMode ? "text-blue-100" : "text-blue-900"
+                        }`}
                       >
                         {result.recommendedActions.map((action, index) => (
                           <li key={index}>{action}</li>
@@ -853,30 +858,40 @@ export default function Page() {
 
                 {(result.psychologyAdvice || result.psychologyError) && (
                   <div
-                    className={`rounded-xl border p-4 md:p-6 shadow-sm ${isDarkMode
-                      ? "border-amber-900 bg-amber-950"
-                      : "border-amber-200 bg-amber-50"
-                      }`}
+                    className={`rounded-xl border p-4 md:p-6 shadow-sm ${
+                      isDarkMode
+                        ? "border-amber-900 bg-amber-950"
+                        : "border-amber-200 bg-amber-50"
+                    }`}
                   >
                     <h2
-                      className={`mb-3 md:mb-4 text-lg md:text-xl font-bold flex items-center gap-2 ${isDarkMode ? "text-amber-100" : "text-amber-900"
-                        }`}
+                      className={`mb-3 md:mb-4 text-lg md:text-xl font-bold flex items-center gap-2 ${
+                        isDarkMode ? "text-amber-100" : "text-amber-900"
+                      }`}
                     >
-                      <Image src={TamLy} alt="Tam Ly" height={20} width={60} style={{ width: "auto", height: "auto" }} />{" "}
+                      <Image
+                        src={TamLy}
+                        alt="Tam Ly"
+                        height={20}
+                        width={60}
+                        style={{ width: "auto", height: "auto" }}
+                      />{" "}
                       Cô tâm lý
                     </h2>
                     {result.psychologyAdvice && (
                       <p
-                        className={`text-base md:text-lg leading-relaxed ${isDarkMode ? "text-amber-100" : "text-amber-950"
-                          }`}
+                        className={`text-base md:text-lg leading-relaxed ${
+                          isDarkMode ? "text-amber-100" : "text-amber-950"
+                        }`}
                       >
                         {result.psychologyAdvice}
                       </p>
                     )}
                     {result.psychologyError && (
                       <p
-                        className={`text-base md:text-lg leading-relaxed ${isDarkMode ? "text-amber-200" : "text-amber-900"
-                          }`}
+                        className={`text-base md:text-lg leading-relaxed ${
+                          isDarkMode ? "text-amber-200" : "text-amber-900"
+                        }`}
                       >
                         {result.psychologyError}
                       </p>
@@ -884,48 +899,66 @@ export default function Page() {
                   </div>
                 )}
 
-                {(result.riskLevel === "warning" || result.riskLevel === "danger") && (
+                {(result.riskLevel === "warning" ||
+                  result.riskLevel === "danger") && (
                   <div
-                    className={`rounded-xl border p-4 md:p-6 shadow-sm space-y-4 ${isDarkMode
-                      ? "border-[#3e3d38] bg-[#2b2a27]"
-                      : "border-hairline bg-canvas"
-                      }`}
+                    className={`rounded-xl border p-4 md:p-6 shadow-sm space-y-4 ${
+                      isDarkMode
+                        ? "border-[#3e3d38] bg-[#2b2a27]"
+                        : "border-hairline bg-canvas"
+                    }`}
                   >
                     <h2
-                      className={`text-lg md:text-xl font-bold border-b pb-2 ${isDarkMode
-                        ? "border-[#3e3d38] text-[#e6e4df]"
-                        : "border-hairline text-gray-850"
-                        }`}
+                      className={`text-lg md:text-xl font-bold border-b pb-2 ${
+                        isDarkMode
+                          ? "border-[#3e3d38] text-[#e6e4df]"
+                          : "border-hairline text-gray-850"
+                      }`}
                     >
                       Bác đã làm gì rồi?
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {(result.scenarios && result.scenarios.length === 4 ? result.scenarios : [
-                        { key: "none", label: "🛡️ Chưa làm gì cả" },
-                        { key: "link", label: "🔗 Đã bấm vào đường dẫn" },
-                        { key: "money", label: "💸 Đã chuyển khoản tiền" },
-                        { key: "otp", label: "🔑 Đã cung cấp mã OTP / mật khẩu" }
-                      ]).map((scen) => {
+                      {(result.scenarios && result.scenarios.length === 4
+                        ? result.scenarios
+                        : DEFAULT_SCENARIOS
+                      ).map((scen) => {
                         const isSelected = selectedScenario === scen.key;
-                        const icon = scen.key === "none" ? "🛡️ " : scen.key === "link" ? "🔗 " : scen.key === "money" ? "💸 " : "🔑 ";
-                        const cleanLabel = scen.label.startsWith("🛡️") || scen.label.startsWith("🔗") || scen.label.startsWith("💸") || scen.label.startsWith("🔑")
-                          ? scen.label 
-                          : `${icon}${scen.label}`;
+                        const cleanLabel = scen.label.replace(
+                          /^[^\p{L}\p{N}]+/u,
+                          "",
+                        );
+                        const ScenarioIcon =
+                          scen.key === "none"
+                            ? FaShieldHalved
+                            : scen.key === "link"
+                              ? FaLink
+                              : scen.key === "money"
+                                ? FaMoneyBillWave
+                                : FaKey;
 
                         return (
                           <button
                             key={scen.key}
                             disabled={selectedScenario !== null}
-                            onClick={() => handleSelectScenario(scen.key as any)}
+                            onClick={() => handleSelectScenario(scen.key)}
                             className={`cursor-pointer rounded-xl px-4 py-3 text-base md:text-lg font-medium transition-colors text-left border ${
                               isSelected
                                 ? scen.key === "none"
-                                  ? isDarkMode ? "bg-green-950 border-green-700 text-green-300" : "bg-green-50 border-green-200 text-green-700"
-                                  : isDarkMode ? "bg-red-950 border-error text-red-300" : "bg-red-50 border-error text-error"
-                                : isDarkMode ? "border-[#3e3d38] bg-[#2b2a27] hover:bg-[#383733] text-[#e6e4df] disabled:opacity-50" : "border-hairline bg-canvas hover:bg-surface-soft text-gray-750 disabled:opacity-50"
+                                  ? isDarkMode
+                                    ? "bg-green-950 border-green-700 text-green-300"
+                                    : "bg-green-50 border-green-200 text-green-700"
+                                  : isDarkMode
+                                    ? "bg-red-950 border-error text-red-300"
+                                    : "bg-red-50 border-error text-error"
+                                : isDarkMode
+                                  ? "border-[#3e3d38] bg-[#2b2a27] hover:bg-[#383733] text-[#e6e4df] disabled:opacity-50"
+                                  : "border-hairline bg-canvas hover:bg-surface-soft text-gray-750 disabled:opacity-50"
                             }`}
                           >
-                            {cleanLabel}
+                            <span className="flex items-center gap-3">
+                              <ScenarioIcon className="h-4 w-4 shrink-0" />
+                              <span>{cleanLabel}</span>
+                            </span>
                           </button>
                         );
                       })}
@@ -933,19 +966,25 @@ export default function Page() {
 
                     {selectedScenario === "none" && (
                       <div
-                        className={`mt-4 p-5 rounded-xl border text-base md:text-lg animate-in fade-in duration-300 ${isDarkMode
-                          ? "border-green-900 bg-green-950 text-green-200"
-                          : "border-green-200 bg-green-50 text-green-700"
-                          }`}
+                        className={`mt-4 p-5 rounded-xl border text-base md:text-lg animate-in fade-in duration-300 ${
+                          isDarkMode
+                            ? "border-green-900 bg-green-950 text-green-200"
+                            : "border-green-200 bg-green-50 text-green-700"
+                        }`}
                       >
-                        🌟 Bác thật tuyệt vời và tỉnh táo. Không thao tác hay nhấp vào bất kỳ thông tin nào trong tin nhắn là cách tốt nhất để bảo vệ mình. Hãy tiếp tục nâng cao cảnh giác bác nhé.
+                        🌟 Bác thật tuyệt vời và tỉnh táo. Không thao tác hay
+                        nhấp vào bất kỳ thông tin nào trong tin nhắn là cách tốt
+                        nhất để bảo vệ mình. Hãy tiếp tục nâng cao cảnh giác bác
+                        nhé.
                       </div>
                     )}
 
                     {responderLoading && (
                       <div className="mt-4 p-5 flex flex-col items-center justify-center space-y-3">
                         <div className="w-8 h-8 border-4 border-error border-t-transparent rounded-full animate-spin"></div>
-                        <p className={`text-base md:text-lg ${isDarkMode ? "text-[#a3a199]" : "text-ink"}`}>
+                        <p
+                          className={`text-base md:text-lg ${isDarkMode ? "text-[#a3a199]" : "text-ink"}`}
+                        >
                           Đang liên hệ Người ứng cứu khẩn cấp...
                         </p>
                       </div>
@@ -953,25 +992,38 @@ export default function Page() {
 
                     {responderError && (
                       <div
-                        className={`mt-4 p-4 rounded-xl text-base md:text-lg border ${isDarkMode
-                          ? "border-error bg-red-950 text-red-200"
-                          : "border-error bg-error text-on-primary text-error"
-                          }`}
+                        className={`mt-4 p-4 rounded-xl text-base md:text-lg border ${
+                          isDarkMode
+                            ? "border-error bg-red-950 text-red-200"
+                            : "border-error bg-error text-on-primary text-error"
+                        }`}
                       >
-                        ⚠️ {responderError}
+                        <span className="flex items-center gap-2">
+                          <FaTriangleExclamation className="h-5 w-5 shrink-0" />
+                          {responderError}
+                        </span>
                       </div>
                     )}
 
                     {responderSteps && responderSteps.length > 0 && (
                       <div className="mt-4 space-y-4 animate-in fade-in duration-300">
-                        <div className={`p-4 rounded-xl border-l-4 ${
-                          isDarkMode ? "bg-red-950/40 border-error" : "bg-red-50 border-error"
-                        }`}>
-                          <h3 className={`text-base md:text-lg font-bold mb-1 ${isDarkMode ? "text-red-300" : "text-red-750"}`}>
+                        <div
+                          className={`p-4 rounded-xl border-l-4 ${
+                            isDarkMode
+                              ? "bg-red-950/40 border-error"
+                              : "bg-red-50 border-error"
+                          }`}
+                        >
+                          <h3
+                            className={`text-base md:text-lg font-bold mb-1 ${isDarkMode ? "text-red-300" : "text-red-750"}`}
+                          >
                             🚨 Kịch bản ứng cứu khẩn cấp từ Người ứng cứu
                           </h3>
-                          <p className={`text-sm md:text-base ${isDarkMode ? "text-[#a3a199]" : "text-ink"}`}>
-                            Bác cần làm chính xác và nhanh chóng các bước dưới đây để giảm thiểu tối đa thiệt hại.
+                          <p
+                            className={`text-sm md:text-base ${isDarkMode ? "text-[#a3a199]" : "text-ink"}`}
+                          >
+                            Bác cần làm chính xác và nhanh chóng các bước dưới
+                            đây để giảm thiểu tối đa thiệt hại.
                           </p>
                         </div>
 
@@ -980,21 +1032,29 @@ export default function Page() {
                             <div
                               key={step.stepNumber}
                               className={`p-4 md:p-5 rounded-xl border ${
-                                isDarkMode ? "border-[#3e3d38] bg-gray-900/60" : "border-hairline bg-canvas"
+                                isDarkMode
+                                  ? "border-[#3e3d38] bg-gray-900/60"
+                                  : "border-hairline bg-canvas"
                               }`}
                             >
-                              <h4 className={`text-base md:text-lg font-bold flex gap-2 items-center mb-2 ${
-                                isDarkMode ? "text-[#e6e4df]" : "text-ink"
-                              }`}>
+                              <h4
+                                className={`text-base md:text-lg font-bold flex gap-2 items-center mb-2 ${
+                                  isDarkMode ? "text-[#e6e4df]" : "text-ink"
+                                }`}
+                              >
                                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-on-dark text-xs font-bold shrink-0">
                                   {step.stepNumber}
                                 </span>
                                 {step.action}
                               </h4>
                               {step.quote && (
-                                <div className={`p-3 rounded-lg border italic text-sm md:text-base ${
-                                  isDarkMode ? "border-[#3e3d38] bg-[#2b2a27] text-[#a3a199]" : "border-hairline bg-canvas text-ink"
-                                }`}>
+                                <div
+                                  className={`p-3 rounded-lg border italic text-sm md:text-base ${
+                                    isDarkMode
+                                      ? "border-[#3e3d38] bg-[#2b2a27] text-[#a3a199]"
+                                      : "border-hairline bg-canvas text-ink"
+                                  }`}
+                                >
                                   &ldquo;{step.quote}&rdquo;
                                 </div>
                               )}
@@ -1005,68 +1065,6 @@ export default function Page() {
                     )}
                   </div>
                 )}
-
-                {/* 
-                <div className="mt-6 flex justify-center">
-                  <button
-                    onClick={handleShareAndDownloadCard}
-                    disabled={isDownloading}
-                    className={`flex items-center gap-2 cursor-pointer rounded-xl px-6 py-3 text-base md:text-lg font-bold transition-colors shadow-md disabled:opacity-70 ${
-                      isDarkMode
-                        ? "bg-green-700 text-[#e6e4df] hover:bg-green-600"
-                        : "bg-green-600 text-on-dark hover:bg-green-700"
-                    }`}
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                      ></path>
-                    </svg>
-                    {isDownloading ? "Đang tạo QR & Tải ảnh..." : "Tạo QR & Tải ảnh Thẻ Cảnh Báo"}
-                  </button>
-                </div>
-
-                {shareUrl && (
-                  <div className={`mt-8 p-6 border rounded-2xl flex flex-col items-center shadow-sm ${isDarkMode ? "bg-[#2b2a27] border-[#3e3d38]" : "bg-canvas border-hairline"}`}>
-                    <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? "text-[#e6e4df]" : "text-ink"}`}>Chia sẻ trực tuyến kết quả này</h3>
-                    <div className="bg-canvas p-4 rounded-xl shadow-sm border border-hairline mb-4">
-                      <QRCodeSVG value={shareUrl} size={180} />
-                    </div>
-                    <div className="flex items-center gap-2 w-full max-w-sm">
-                      <input 
-                        type="text" 
-                        readOnly 
-                        value={shareUrl} 
-                        className={`flex-1 px-3 py-2.5 text-sm rounded-lg border focus:outline-none ${isDarkMode ? "bg-[#2b2a27] border-[#3e3d38] text-[#e6e4df]" : "bg-canvas border-hairline text-ink"}`}
-                      />
-                      <button 
-                        onClick={() => {
-                          navigator.clipboard.writeText(shareUrl);
-                          alert("Đã sao chép đường dẫn!");
-                        }}
-                        className={`px-4 py-2.5 text-sm font-bold rounded-lg transition-colors ${isDarkMode ? "bg-primary hover:bg-primary-active text-[#e6e4df]" : "bg-primary hover:bg-primary-active text-on-dark"}`}
-                      >
-                        Copy
-                      </button>
-                    </div>
-                    <p className={`mt-3 text-sm text-center ${isDarkMode ? "text-[#a3a199]" : "text-muted"}`}>
-                      Người thân của bạn có thể quét mã QR này hoặc truy cập đường dẫn trên để xem kết quả phân tích. (Tự động xoá sau 24 giờ)
-                    </p>
-                  </div>
-                )}
-
-                <div style={{ position: "fixed", left: "-9999px", top: 0, zIndex: -100, opacity: 0, pointerEvents: "none" }}>
-                  <WarningCard ref={warningCardRef} message={message} result={result} url={shareUrl || (typeof window !== "undefined" ? window.location.origin : "https://scamcheck.vn")} />
-                </div>
-                */}
               </div>
             )}
           </div>
@@ -1074,20 +1072,19 @@ export default function Page() {
       </div>
 
       <footer
-        className={`shrink-0 w-full border-t px-5 md:px-10 py-5 text-center text-sm md:text-base font-medium transition-colors ${isDarkMode
-          ? "border-[#3e3d38] bg-[#2b2a27] text-[#a3a199]"
-          : "border-hairline bg-canvas text-ink"
-          }`}
+        className={`shrink-0 w-full border-t px-5 md:px-10 py-5 text-center text-sm md:text-base font-medium transition-colors ${
+          isDarkMode
+            ? "border-[#3e3d38] bg-[#2b2a27] text-[#a3a199]"
+            : "border-hairline bg-canvas text-ink"
+        }`}
       >
         <div className="flex flex-col gap-2 items-center">
           <p>
             ⚠️ <strong>Lưu ý:</strong> ScamCheck là công cụ giáo dục do nhóm học
-            viên phát triển và không thay thế cảnh báo chính thức từ ngân hàng hoặc
-            cơ quan chức năng. Khi nghi ngờ, hãy gọi số hotline trên thẻ ngân hàng!
+            viên phát triển và không thay thế cảnh báo chính thức từ ngân hàng
+            hoặc cơ quan chức năng. Khi nghi ngờ, hãy gọi số hotline trên thẻ
+            ngân hàng!
           </p>
-          {process.env.NEXT_PUBLIC_APP_VERSION && (
-            <p className="text-xs opacity-60 font-mono">Phiên bản: {process.env.NEXT_PUBLIC_APP_VERSION}</p>
-          )}
         </div>
       </footer>
     </div>

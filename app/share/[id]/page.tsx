@@ -1,7 +1,8 @@
-import { notFound } from "next/navigation";
 import { storage } from "@/lib/storage";
 import Link from "next/link";
 import SharedResultClient from "./SharedResultClient";
+import { SharePayload } from "@/types/detective";
+import { FaTriangleExclamation } from "react-icons/fa6";
 
 export default async function SharedResultPage({
   params,
@@ -10,13 +11,15 @@ export default async function SharedResultPage({
 }) {
   const { id } = await params;
 
-  const sharedData = await storage.get<{ message: string; result: any }>(`share:${id}`);
+  const sharedData = await storage.get<SharePayload>(`share:${id}`);
 
   if (!sharedData) {
     return (
       <div className="min-h-screen bg-canvas flex items-center justify-center p-6 font-sans">
-        <div className="bg-canvas p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
-          <div className="text-red-500 text-6xl mb-4">⚠️</div>
+        <div className="bg-surface-card border border-hairline p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
+          <div className="mb-4 flex justify-center text-red-500">
+            <FaTriangleExclamation className="h-14 w-14" />
+          </div>
           <h1 className="text-2xl font-bold text-ink mb-2">
             Đoạn chat không tồn tại
           </h1>

@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { DetectiveResult } from "@/types/detective";
+import {
+  DetectiveResult,
+  DetectiveScenario,
+  ScenarioKey,
+} from "@/types/detective";
 
 type GeminiGenerateResponse = {
   candidates?: {
@@ -22,6 +26,7 @@ type GeminiDetectiveResult = {
   scamSigns?: unknown;
   recommendedActions?: unknown;
   psychologyAdvice?: unknown;
+  scenarios?: unknown;
 };
 
 const fallback: DetectiveResult = {
@@ -69,18 +74,18 @@ const detectiveResponseSchema = {
         type: "OBJECT",
         properties: {
           key: { type: "STRING", enum: ["none", "link", "money", "otp"] },
-          label: { type: "STRING" }
+          label: { type: "STRING" },
         },
-        required: ["key", "label"]
-      }
-    }
+        required: ["key", "label"],
+      },
+    },
   },
   required: [
     "riskLevel",
     "scamSigns",
     "recommendedActions",
     "psychologyAdvice",
-    "scenarios"
+    "scenarios",
   ],
 };
 
@@ -88,44 +93,30 @@ function isRiskLevel(value: unknown): value is DetectiveResult["riskLevel"] {
   return value === "safe" || value === "warning" || value === "danger";
 }
 
-function cleanJsonText(text: string) {
-  const cleaned = text
-    .replace(/```json/gi, "")
-    .replace(/```/g, "")
-    .trim();
-  const start = cleaned.indexOf("{");
-  const end = cleaned.lastIndexOf("}");
-
-  if (start === -1 || end === -1 || end <= start) {
-    return cleaned;
-  }
-
-  return cleaned.slice(start, end + 1);
+function isScenarioKey(value: unknown): value is ScenarioKey {
+  return value === "none" || value === "link" || value === "money" || value === "otp";
 }
 
 function toText(value: unknown) {
   return typeof value === "string" ? value : "";
 }
 
-function repairJsonText(text: string) {
-  return text
-    .replace(/,\s*([}\]])/g, "$1")
-    .replace(/(["}\]])\s*\n\s*(")/g, "$1,\n$2")
-    .replace(/}\s*{/g, "},{");
-}
-
-function parseDetectiveJson(text: string) {
-  try {
-    return JSON.parse(text) as GeminiDetectiveResult;
-  } catch (firstError) {
-    const repaired = repairJsonText(text);
-
-    try {
-      return JSON.parse(repaired) as GeminiDetectiveResult;
-    } catch {
-      throw firstError;
-    }
+function toScenarioList(value: unknown): DetectiveScenario[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
   }
+
+  return value.map((scenario) => {
+    const item =
+      typeof scenario === "object" && scenario !== null
+        ? (scenario as { key?: unknown; label?: unknown })
+        : {};
+
+    return {
+      key: isScenarioKey(item.key) ? item.key : "none",
+      label: toText(item.label),
+    };
+  });
 }
 
 function normalizeDetectiveResult(
@@ -135,27 +126,21 @@ function normalizeDetectiveResult(
     ? parsed.riskLevel
     : "warning";
   const psychologyAdvice = toText(parsed.psychologyAdvice).trim();
-
-  const scenarios = Array.isArray((parsed as any).scenarios)
-    ? (parsed as any).scenarios.map((scen: any) => ({
-      key: typeof scen?.key === "string" ? scen.key : "none",
-      label: typeof scen?.label === "string" ? scen.label : "",
-    }))
-    : undefined;
+  const scenarios = toScenarioList(parsed.scenarios);
 
   return {
     riskLevel,
     scamSigns: Array.isArray(parsed.scamSigns)
       ? parsed.scamSigns.map((item: GeminiScamSign) => ({
-        title: toText(item?.title),
-        explanation: toText(item?.explanation),
-        excerpt: toText(item?.excerpt),
-      }))
+          title: toText(item?.title),
+          explanation: toText(item?.explanation),
+          excerpt: toText(item?.excerpt),
+        }))
       : [],
     recommendedActions: Array.isArray(parsed.recommendedActions)
       ? parsed.recommendedActions.filter(
-        (action): action is string => typeof action === "string",
-      )
+          (action): action is string => typeof action === "string",
+        )
       : [],
     scenarios,
     ...(riskLevel !== "safe" && psychologyAdvice ? { psychologyAdvice } : {}),
@@ -256,11 +241,12 @@ Chỉ trả về JSON.
 `;
 
     const text = await callGemini(prompt);
-    
+
     let cleanText = text.trim();
     if (cleanText.startsWith("```json")) cleanText = cleanText.substring(7);
     else if (cleanText.startsWith("```")) cleanText = cleanText.substring(3);
-    if (cleanText.endsWith("```")) cleanText = cleanText.substring(0, cleanText.length - 3);
+    if (cleanText.endsWith("```"))
+      cleanText = cleanText.substring(0, cleanText.length - 3);
     cleanText = cleanText.trim();
     cleanText = cleanText.replace(/[\n\r\t]/g, " ");
 
