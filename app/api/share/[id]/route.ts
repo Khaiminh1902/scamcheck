@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/sqlite";
+import { storage } from "@/lib/storage";
 
 export async function GET(
   req: Request,
@@ -15,12 +15,7 @@ export async function GET(
       );
     }
 
-    const db = await getDb();
-
-    // Tự động dọn rác trước khi query
-    await db.run(`DELETE FROM shared_results WHERE created_at <= datetime('now', '-1 day')`);
-
-    const sharedData = await db.get(`SELECT * FROM shared_results WHERE share_id = ?`, [id]);
+    const sharedData = await storage.get<{ message: string; result: any }>(`share:${id}`);
 
     if (!sharedData) {
       return NextResponse.json(
@@ -30,9 +25,9 @@ export async function GET(
     }
 
     return NextResponse.json({
-      shareId: sharedData.share_id,
+      shareId: id,
       message: sharedData.message,
-      result: JSON.parse(sharedData.result),
+      result: sharedData.result,
     });
   } catch (error) {
     console.error("Lỗi khi truy xuất dữ liệu chia sẻ:", error);

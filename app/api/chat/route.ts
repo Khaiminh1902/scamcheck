@@ -138,24 +138,24 @@ function normalizeDetectiveResult(
 
   const scenarios = Array.isArray((parsed as any).scenarios)
     ? (parsed as any).scenarios.map((scen: any) => ({
-        key: typeof scen?.key === "string" ? scen.key : "none",
-        label: typeof scen?.label === "string" ? scen.label : "",
-      }))
+      key: typeof scen?.key === "string" ? scen.key : "none",
+      label: typeof scen?.label === "string" ? scen.label : "",
+    }))
     : undefined;
 
   return {
     riskLevel,
     scamSigns: Array.isArray(parsed.scamSigns)
       ? parsed.scamSigns.map((item: GeminiScamSign) => ({
-          title: toText(item?.title),
-          explanation: toText(item?.explanation),
-          excerpt: toText(item?.excerpt),
-        }))
+        title: toText(item?.title),
+        explanation: toText(item?.explanation),
+        excerpt: toText(item?.excerpt),
+      }))
       : [],
     recommendedActions: Array.isArray(parsed.recommendedActions)
       ? parsed.recommendedActions.filter(
-          (action): action is string => typeof action === "string",
-        )
+        (action): action is string => typeof action === "string",
+      )
       : [],
     scenarios,
     ...(riskLevel !== "safe" && psychologyAdvice ? { psychologyAdvice } : {}),

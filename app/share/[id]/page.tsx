@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getDb } from "@/lib/sqlite";
+import { storage } from "@/lib/storage";
 import Link from "next/link";
 import SharedResultClient from "./SharedResultClient";
 
@@ -10,12 +10,7 @@ export default async function SharedResultPage({
 }) {
   const { id } = await params;
 
-  const db = await getDb();
-
-  // Dọn dẹp bản ghi rác quá 24h
-  await db.run(`DELETE FROM shared_results WHERE created_at <= datetime('now', '-1 day')`);
-
-  const sharedData = await db.get(`SELECT * FROM shared_results WHERE share_id = ?`, [id]);
+  const sharedData = await storage.get<{ message: string; result: any }>(`share:${id}`);
 
   if (!sharedData) {
     return (
@@ -40,7 +35,7 @@ export default async function SharedResultPage({
   }
 
   const message = sharedData.message;
-  const result = JSON.parse(sharedData.result);
+  const result = sharedData.result;
 
   return <SharedResultClient message={message} result={result} />;
 }
