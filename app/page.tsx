@@ -693,8 +693,8 @@ export default function Page() {
                 onClick={handleCheck}
                 disabled={loading}
                 className={`cursor-pointer rounded-xl px-8 py-4 text-xl font-bold transition-colors w-full md:w-auto shadow-md disabled:bg-gray-400 ${isDarkMode
-                  ? "bg-blue-600 text-white hover:bg-blue-500"
-                  : "bg-black text-white hover:bg-gray-800"
+                  ? "bg-red-600 text-white hover:bg-red-500"
+                  : "bg-red-600 text-white hover:bg-red-700"
                   }`}
               >
                 {loading ? "Đang phân tích..." : "Kiểm tra rủi ro"}
