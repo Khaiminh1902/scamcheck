@@ -347,7 +347,7 @@ export default function Page() {
               ></path>
             </svg>
           </button>
-          <h1 className={`text-2xl font-bold ${isDarkMode ? "text-[#e6e4df]" : "text-ink"}`}>Scam Check</h1>
+          <h1 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-ink"}`}>Scam Check</h1>
           <button
             type="button"
             aria-label={themeToggleLabel}
@@ -403,7 +403,7 @@ export default function Page() {
               }`}
           >
             <div className="hidden md:flex items-center gap-3">
-              <h1 className={`text-2xl font-bold ${isDarkMode ? "text-[#e6e4df]" : "text-ink"}`}>Scam Check</h1>
+              <h1 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-ink"}`}>Scam Check</h1>
               <button
                 type="button"
                 aria-label={themeToggleLabel}

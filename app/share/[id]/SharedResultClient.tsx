@@ -63,7 +63,7 @@ export default function SharedResultClient({ message, result }: { message: strin
               ></path>
             </svg>
           </button>
-          <h1 className="text-2xl font-bold">Scam Check</h1>
+          <h1 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-ink"}`}>Scam Check</h1>
           <button
             type="button"
             aria-label={themeToggleLabel}
@@ -112,7 +112,7 @@ export default function SharedResultClient({ message, result }: { message: strin
               }`}
           >
             <div className="hidden md:flex items-center gap-3">
-              <h1 className="text-2xl font-bold">Scam Check</h1>
+              <h1 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-ink"}`}>Scam Check</h1>
               <button
                 type="button"
                 aria-label={themeToggleLabel}
