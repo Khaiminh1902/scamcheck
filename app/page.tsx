@@ -318,7 +318,7 @@ export default function Page() {
           <h1
             className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-ink"}`}
           >
-            Scam Check
+            ScamCheck
           </h1>
           <button
             type="button"
@@ -381,7 +381,7 @@ export default function Page() {
               <h1
                 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-ink"}`}
               >
-                Scam Check
+                ScamCheck
               </h1>
               <button
                 type="button"
