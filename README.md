@@ -86,19 +86,6 @@ npm run build
 npm start
 ```
 
----
-
-## 👥 Thành Viên Phát Triển (Team Members)
-
-Dự án được hoàn thành bởi nhóm phát triển:
-- **[Họ tên thành viên 1]** - Vai trò: Front-end Developer / UI-UX Designer
-- **[Họ tên thành viên 2]** - Vai trò: Back-end Developer / AI Prompt Engineer
-- **[Họ tên thành viên 3]** - Vai trò: Full-stack Developer / Devops
-
-*(Vui lòng điền thông tin chi tiết của các thành viên nhóm bạn vào đây)*
-
----
-
 ## ⚖️ Lưu ý pháp lý bắt buộc (Disclaimer)
 
 ScamCheck là công cụ giáo dục và không thay thế cảnh báo chính thức từ ngân hàng hoặc cơ quan chức năng. Khi nghi ngờ có lừa đảo liên quan tới tài chính, người dùng nên liên hệ trực tiếp đến số hotline chính thức được in trên thẻ ngân hàng của mình hoặc danh bạ khẩn cấp được tích hợp trong ứng dụng.
